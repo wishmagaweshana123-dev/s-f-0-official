@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SF0 — Role Based Site</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#007aff;--bg:#f5f7fb;--card:#fff;--danger:#ff3b30;--muted:#6b7280}
+*{box-sizing:border-box}
+body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; margin:0; background:var(--bg); color:#111}
+header{padding:28px 16px;text-align:center;color:var(--blue);font-weight:600;font-size:28px}
+.container{max-width:1100px;margin:0 auto}
+.center-card{max-width:480px;margin:36px auto;padding:24px;background:var(--card);border-radius:14px;box-shadow:0 10px 30px rgba(2,6,23,0.06)}
+.stack{display:flex;flex-direction:column;gap:10px}
+input,textarea,select,button{font-family:inherit;font-size:15px}
+input,textarea,select{padding:12px;border-radius:10px;border:1px solid #e6e9f0;background:#fff}
+textarea{min-height:100px;resize:vertical}
+.btn{padding:12px;border-radius:10px;border:0;background:var(--blue);color:#fff;cursor:pointer}
+.small-btn{padding:8px 10px;border-radius:8px;border:0;cursor:pointer}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.muted{color:var(--muted)}
+.error{color:var(--danger);font-size:13px;margin-top:6px}
+
+/* App layout */
+.app {display:none}
+.header-bar{display:flex;justify-content:space-between;align-items:center;padding:12px 0}
+
+/* New: menu toggle button (hidden by default, shown on small screens) */
+#menuToggle{
+  display:none;
+  background:transparent;
+  border:0;
+  font-size:20px;
+  padding:8px 10px;
+  cursor:pointer;
+  border-radius:8px;
+}
+
+/* Sidebar - desktop behavior unchanged */
+.sidebar{width:72px;background:#fff;border-right:1px solid #e6e9f0;padding-top:18px;transition:width .25s;min-height:70vh;position:sticky;top:20px}
+.sidebar:hover{width:220px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;margin:8px;cursor:pointer}
+.nav-item span{opacity:0;transition:opacity .25s}
+.sidebar:hover .nav-item span{opacity:1}
+.content{padding:18px}
+.card{background:#fff;padding:16px;border-radius:12px;box-shadow:0 8px 24px rgba(2,6,23,0.04);margin-bottom:16px}
+.admin-panel{display:none;margin-bottom:12px}
+.video, .post, .positive-item{background:#fff;padding:12px;border-radius:12px;margin-bottom:12px;box-shadow:0 4px 12px rgba(2,6,23,0.04)}
+.video iframe{width:100%;height:320px;border-radius:8px;border:0}
+.controls{margin-top:8px}
+.controls button{margin-right:8px}
+
+/* Responsive adjustments and sliding drawer behavior */
+@media (max-width:900px){
+  /* layout becomes block by default */
+  .layout{display:block}
+
+  /* Hide original full-width behavior and make sidebar a sliding drawer */
+  .sidebar{
+    /* make sidebar fixed (drawer) and off-canvas by default */
+    position:fixed;
+    left:0;
+    top:72px; /* below header */
+    width:220px; /* drawer width on mobile */
+    height:calc(100vh - 72px);
+    transform:translateX(-100%); /* hidden initially */
+    transition:transform .28s ease;
+    z-index:1000;
+    box-shadow: 6px 0 18px rgba(2,6,23,0.08);
+    border-right:1px solid #e6e9f0;
+    padding-top:12px;
+    overflow:auto;
+  }
+
+  /* When open, translate to 0 (visible) */
+  .sidebar.open{
+    transform:translateX(0);
+  }
+
+  /* show hamburger button on small screens */
+  #menuToggle{
+    display:inline-block;
+    margin-right:10px;
+  }
+
+  /* make header-bar content align center-left (so toggle sits nicely) */
+  .header-bar{gap:8px; padding:10px 0}
+
+  /* push content to the right when layout has .shifted */
+  /* note: we use margin-left on .app > .layout container to shift content */
+  .layout.shifted{
+    margin-left:220px; /* same width as sidebar */
+    transition:margin-left .28s ease;
+  }
+
+  /* ensure main content takes full width inside the shifted layout */
+  .content{padding:14px}
+
+  /* change original mobile sidebar fallback (previous rule) to not interfere */
+  .sidebar{display:block}
+  .nav-item{white-space:nowrap}
+}
+
+/* keep existing small-screen fallback for widths >900 removed earlier; other CSS unchanged */
+</style>
+</head>
+<body>
+<header>Welcome to SF0</header>
+
+<!-- AUTH UI -->
+<div id="authWrap" class="center-card container" aria-live="polite">
+  <div id="loginBox" class="stack">
+    <h2 style="margin:0">Login</h2>
+    <input id="loginEmail" type="email" placeholder="Email">
+    <input id="loginPass" type="password" placeholder="Password">
+    <div class="row">
+      <button id="loginBtn" class="btn">Login</button>
+      <button id="toSignup" class="small-btn" style="background:#eef2ff">Create account</button>
+    </div>
+    <div id="loginError" class="error"></div>
+    <div class="muted">Email must be verified to login. Check Spam folder if you don't see verification email.</div>
+  </div>
+
+  <div id="signupBox" class="stack" style="display:none">
+    <h2 style="margin:0">Create Account</h2>
+    <input id="signupEmail" type="email" placeholder="Email">
+    <input id="signupPass" type="password" placeholder="Password (6+ chars)">
+    <div class="row">
+      <button id="signupBtn" class="btn">Sign up</button>
+      <button id="toLogin" class="small-btn" style="background:#eef2ff">Back to login</button>
+    </div>
+    <div id="signupError" class="error"></div>
+    <div class="muted">After signup, check your email and verify. You cannot login until verified.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="app container" style="display:none">
+  <div class="header-bar">
+    <!-- Hamburger toggle (appears only on small screens) -->
+    <button id="menuToggle" aria-label="Open menu" aria-expanded="false">☰</button>
+
+    <div style="font-weight:600;color:var(--blue)">SF0 Dashboard</div>
+    <div>
+      <span id="currentEmail" class="muted"></span>
+      <button id="logoutBtn" class="small-btn" style="margin-left:12px;background:#fee">Logout</button>
+    </div>
+  </div>
+
+  <div class="layout" style="display:flex;gap:18px">
+    <nav class="sidebar" aria-label="Main navigation">
+      <div class="nav-item" onclick="showSection('home')">🏠<span>Home</span></div>
+      <div class="nav-item" onclick="showSection('videos')">🎥<span>Videos</span></div>
+      <div class="nav-item" onclick="showSection('posts')">📝<span>Posts</span></div>
+      <div class="nav-item" onclick="showSection('positives')">🌟<span>Positive Thinking</span></div>
+      <div class="nav-item" onclick="showSection('admins')">🛠️<span>Manage Admins</span></div>
+      <div class="nav-item" onclick="showSection('about')">ℹ️<span>About</span></div>
+      <div class="nav-item" onclick="showSection('contact')">📞<span>Contact</span></div>
+    </nav>
+
+    <main class="content" style="flex:1">
+      <!-- Home -->
+      <section id="home" class="card" style="display:block">
+        <h3>Welcome</h3>
+        <p class="muted">welcome to SF0.</p>
+      </section>
+
+      <!-- Videos -->
+      <section id="videos" class="card" style="display:none">
+        <h3>Videos</h3>
+        <div id="videoPanel" class="admin-panel card">
+          <div class="stack">
+            <input id="videoTitle" placeholder="Title (admin only)">
+            <input id="videoEmbed" placeholder="Embed URL e.g. https://www.youtube.com/embed/VIDEO_ID">
+            <input id="videoThumb" placeholder="Thumbnail image URL (optional)">
+            <div class="row"><button id="uploadVideo" class="btn">Upload Video</button></div>
+          </div>
+        </div>
+        <div id="videoList"></div>
+      </section>
+
+      <!-- Posts -->
+      <section id="posts" class="card" style="display:none">
+        <h3>Posts</h3>
+        <div id="postPanel" class="admin-panel card">
+          <input id="postTitle" placeholder="Post title (admin only)">
+          <textarea id="postText" placeholder="Post text"></textarea>
+          <input id="postImage" placeholder="Image URL (optional)">
+          <div class="row"><button id="uploadPost" class="btn">Upload Post</button></div>
+        </div>
+        <div id="postList"></div>
+      </section>
+
+      <!-- Positives -->
+      <section id="positives" class="card" style="display:none">
+        <h3>Positive Thinking</h3>
+        <div id="positivePanel" class="admin-panel card">
+          <input id="positiveTitle" placeholder="Title (admin only)">
+          <textarea id="positiveText" placeholder="Text (optional)"></textarea>
+          <input id="positiveImage" placeholder="Image URL (optional)">
+          <input id="positiveVideo" placeholder="Video embed URL (optional)">
+          <div class="row"><button id="uploadPositive" class="btn">Upload Positive</button></div>
+        </div>
+        <div id="positiveList"></div>
+      </section>
+
+      <!-- Admins (owner only) -->
+      <section id="admins" class="card" style="display:none">
+        <h3>Admin Management (Owner only)</h3>
+        <input id="adminEmailInput" placeholder="User email (to promote/demote)">
+        <div class="row" style="margin-top:8px">
+          <button id="promoteBtn" class="btn">Promote to Admin</button>
+          <button id="demoteBtn" class="small-btn" style="background:#fee">Demote to User</button>
+        </div>
+        <div id="adminsList" style="margin-top:12px"></div>
+      </section>
+
+      <!-- About -->
+      <section id="about" class="card" style="display:none"><h3>About</h3><p class="muted">designed by Chanuka Mindiw.</p></section>
+
+      <!-- Contact -->
+      <section id="contact" class="card" style="display:none"><h3>Contact</h3><p class="muted">mail: contact@sf0.com</p></section>
+    </main>
+  </div>
+
+  <footer style="text-align:center;padding:16px;color:var(--muted)">SF0 • Official</footer>
+</div>
+
+<!-- Firebase & App logic -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+  import { getDatabase, ref, set, push, get, update, remove } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+  // ====== CONFIG: replace values if needed ======
+  const firebaseConfig = {
+    apiKey: "AIzaSyCkiB65lvUh04SbfXMfKNjx0GQwAKCcwTY",
+    authDomain: "sf0-yt.firebaseapp.com",
+    databaseURL: "https://sf0-yt-default-rtdb.firebaseio.com/",
+    projectId: "sf0-yt",
+    storageBucket: "sf0-yt.firebasestorage.app",
+    messagingSenderId: "466855199003",
+    appId: "1:466855199003:web:c42db7397a9cd3a37f13be"
+  };
+  const OWNER_EMAIL = "chanukamindiw2006@gmail.com";
+  // ==============================================
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const auth = getAuth(app);
+
+  // UI elements
+  const authWrap = document.getElementById('authWrap');
+  const appWrap = document.getElementById('app');
+  const loginBox = document.getElementById('loginBox');
+  const signupBox = document.getElementById('signupBox');
+  const currentEmail = document.getElementById('currentEmail');
+
+  // show/hide auth forms
+  document.getElementById('toSignup').onclick = () => { loginBox.style.display='none'; signupBox.style.display='block'; };
+  document.getElementById('toLogin').onclick = () => { signupBox.style.display='none'; loginBox.style.display='block'; };
+
+  // signup
+  document.getElementById('signupBtn').addEventListener('click', async () => {
+    const email = document.getElementById('signupEmail').value.trim();
+    const pass = document.getElementById('signupPass').value.trim();
+    document.getElementById('signupError').textContent = '';
+    if(!email || pass.length < 6){ document.getElementById('signupError').textContent = 'Enter email & password (6+ chars)'; return; }
+    try{
+      const uc = await createUserWithEmailAndPassword(auth, email, pass);
+      await sendEmailVerification(uc.user);
+      // set users/{uid} record (role user or owner)
+      const role = (email === OWNER_EMAIL) ? 'owner' : 'user';
+      await set(ref(db, 'users/' + uc.user.uid), { email, role });
+      alert('Account created. Please verify email (check Spam).');
+      signupBox.style.display='none'; loginBox.style.display='block';
+    }catch(e){ document.getElementById('signupError').textContent = e.message; }
+  });
+
+  // login
+  document.getElementById('loginBtn').addEventListener('click', async () => {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPass').value.trim();
+    document.getElementById('loginError').textContent = '';
+    if(!email || !pass){ document.getElementById('loginError').textContent = 'Enter email & password'; return; }
+    try{
+      const uc = await signInWithEmailAndPassword(auth, email, pass);
+      if(!uc.user.emailVerified){ await signOut(auth); alert('Please verify your email first.'); return; }
+      // onAuthStateChanged will handle UI
+    }catch(e){ document.getElementById('loginError').textContent = e.message; }
+  });
+
+  // logout
+  document.getElementById('logoutBtn').addEventListener('click', ()=> signOut(auth));
+
+  // auth state changes - auto-create users node if missing, upgrade owner, show UI
+  onAuthStateChanged(auth, async user => {
+    if(user){
+      currentEmail.textContent = user.email;
+      // ensure users/{uid} exists with role
+      const uRef = ref(db, 'users/' + user.uid);
+      const snap = await get(uRef);
+      if(!snap.exists()){
+        const role = (user.email === OWNER_EMAIL) ? 'owner' : 'user';
+        await set(uRef, { email: user.email, role });
+      } else {
+        // if user email is OWNER_EMAIL but role not owner, upgrade
+        if(user.email === OWNER_EMAIL && snap.val().role !== 'owner'){
+          await update(uRef, { role: 'owner' });
+        }
+      }
+
+      // show app
+      authWrap.style.display = 'none';
+      appWrap.style.display = 'block';
+      // toggle panels & render content
+      await toggleAdminPanels();
+      await renderAll();
+    } else {
+      // signed out
+      authWrap.style.display = 'block';
+      appWrap.style.display = 'none';
+      currentEmail.textContent = '';
+    }
+  });
+
+  // helper: show section
+  window.showSection = (id) => {
+    document.querySelectorAll('section[id]').forEach(s => s.style.display = 'none');
+    const el = document.getElementById(id);
+    if(el) el.style.display = 'block';
+
+    // On small screens, close the drawer when a nav item is tapped
+    if(window.innerWidth <= 900){
+      closeMobileMenuIfOpen();
+    }
+  };
+
+  // UTIL: get role
+  async function getRole(){
+    const u = auth.currentUser;
+    if(!u) return null;
+    const s = await get(ref(db, 'users/' + u.uid));
+    if(!s.exists()) return null;
+    return s.val().role;
+  }
+
+  // show/hide admin panels
+  async function toggleAdminPanels(){
+    const role = await getRole();
+    document.querySelectorAll('.admin-panel').forEach(p => p.style.display = (role === 'admin' || role === 'owner') ? 'block' : 'none');
+    // show admins section only to owner
+    document.getElementById('admins').style.display = (role === 'owner') ? 'block' : 'none';
+  }
+
+  // #### CONTENT CRUD ####
+
+  // Videos
+  document.getElementById('uploadVideo').addEventListener('click', async ()=>{
+    const title = document.getElementById('videoTitle').value.trim();
+    const url = document.getElementById('videoEmbed').value.trim();
+    const thumb = document.getElementById('videoThumb').value.trim();
+    if(!title || !url){ alert('Title and embed URL required'); return; }
+    const role = await getRole();
+    if(role === 'admin' || role === 'owner'){
+      await push(ref(db, 'videos'), { title, url, thumb: thumb || null, uploader: auth.currentUser.uid, createdAt: Date.now() });
+      document.getElementById('videoTitle').value=''; document.getElementById('videoEmbed').value=''; document.getElementById('videoThumb').value='';
+      await renderVideos();
+    } else alert('Only admins/owner can upload videos');
+  });
+
+  async function renderVideos(){
+    const list = document.getElementById('videoList'); list.innerHTML = '';
+    const snap = await get(ref(db, 'videos'));
+    if(!snap.exists()){ list.innerHTML = '<div class="muted">No videos yet</div>'; return; }
+    const role = await getRole();
+    snap.forEach(c => {
+      const v = c.val(); const k = c.key;
+      const el = document.createElement('div'); el.className = 'video';
+      let thumbHtml = v.thumb ? `<div style="margin:8px 0"><img src="${escapeAttr(v.thumb)}" style="max-width:200px;border-radius:8px"></div>` : '';
+      el.innerHTML = `<h4>${escapeHtml(v.title)}</h4>${thumbHtml}<div style="margin-top:8px"><iframe src="${escapeAttr(v.url)}" style="width:100%;height:320px;border:0;border-radius:8px"></iframe></div>`;
+      if(role === 'admin' || role === 'owner'){
+        const edit = document.createElement('button'); edit.className='small-btn edit'; edit.textContent='Edit';
+        edit.onclick = async ()=>{ const nt = prompt('New title', v.title); const nu = prompt('New embed URL', v.url); const nth = prompt('New thumb URL', v.thumb || ''); if(nt && nu){ await update(ref(db,'videos/'+k),{title:nt,url:nu,thumb:nth||null}); renderVideos(); } };
+        const del = document.createElement('button'); del.className='small-btn del'; del.textContent='Delete';
+        del.onclick = async ()=>{ if(confirm('Delete?')){ await remove(ref(db,'videos/'+k)); renderVideos(); } };
+        el.appendChild(edit); el.appendChild(del);
+      }
+      list.appendChild(el);
+    });
+  }
+
+  // Posts (text + image)
+  document.getElementById('uploadPost').addEventListener('click', async ()=>{
+    const title = document.getElementById('postTitle').value.trim();
+    const content = document.getElementById('postText').value.trim();
+    const img = document.getElementById('postImage').value.trim();
+    if(!title || !content){ alert('Title & text required'); return; }
+    const role = await getRole();
+    if(role === 'admin' || role === 'owner'){
+      await push(ref(db, 'posts'), { title, content, image: img || null, uploader: auth.currentUser.uid, createdAt: Date.now() });
+      document.getElementById('postTitle').value=''; document.getElementById('postText').value=''; document.getElementById('postImage').value='';
+      await renderPosts();
+    } else alert('Only admins/owner can upload posts');
+  });
+
+  async function renderPosts(){
+    const list = document.getElementById('postList'); list.innerHTML = '';
+    const snap = await get(ref(db, 'posts'));
+    if(!snap.exists()){ list.innerHTML = '<div class="muted">No posts yet</div>'; return; }
+    const role = await getRole();
+    snap.forEach(c => {
+      const p = c.val(); const k = c.key;
+      const el = document.createElement('div'); el.className = 'post';
+      let imgHtml = p.image ? `<div style="margin:8px 0"><img src="${escapeAttr(p.image)}" style="max-width:300px;border-radius:8px"></div>` : '';
+      el.innerHTML = `<h4>${escapeHtml(p.title)}</h4>${imgHtml}<p>${escapeHtml(p.content)}</p>`;
+      if(role === 'admin' || role === 'owner'){
+        const edit = document.createElement('button'); edit.className='small-btn edit'; edit.textContent='Edit';
+        edit.onclick = async ()=>{ const nt = prompt('New title', p.title); const nc = prompt('New content', p.content); const ni = prompt('New image URL', p.image||''); if(nt && nc){ await update(ref(db,'posts/'+k),{title:nt,content:nc,image:ni||null}); renderPosts(); } };
+        const del = document.createElement('button'); del.className='small-btn del'; del.textContent='Delete';
+        del.onclick = async ()=>{ if(confirm('Delete post?')){ await remove(ref(db,'posts/'+k)); renderPosts(); } };
+        el.appendChild(edit); el.appendChild(del);
+      }
+      list.appendChild(el);
+    });
+  }
+
+  // Positives (text + image + video)
+  document.getElementById('uploadPositive').addEventListener('click', async ()=>{
+    const title = document.getElementById('positiveTitle').value.trim();
+    const text = document.getElementById('positiveText').value.trim();
+    const img = document.getElementById('positiveImage').value.trim();
+    const vid = document.getElementById('positiveVideo').value.trim();
+    if(!title){ alert('Title required'); return; }
+    const role = await getRole();
+    if(role === 'admin' || role === 'owner'){
+      await push(ref(db, 'positives'), { title, text: text||null, image: img||null, video: vid||null, uploader: auth.currentUser.uid, createdAt: Date.now() });
+      document.getElementById('positiveTitle').value=''; document.getElementById('positiveText').value=''; document.getElementById('positiveImage').value=''; document.getElementById('positiveVideo').value='';
+      await renderPositives();
+    } else alert('Only admins/owner can upload positives');
+  });
+
+  async function renderPositives(){
+    const list = document.getElementById('positiveList'); list.innerHTML = '';
+    const snap = await get(ref(db, 'positives'));
+    if(!snap.exists()){ list.innerHTML = '<div class="muted">No items yet</div>'; return; }
+    const role = await getRole();
+    snap.forEach(c => {
+      const v = c.val(); const k = c.key;
+      const el = document.createElement('div'); el.className='positive-item';
+      const imgHtml = v.image ? `<div style="margin:8px 0"><img src="${escapeAttr(v.image)}" style="max-width:320px;border-radius:8px"></div>` : '';
+      const vidHtml = v.video ? `<div style="margin:8px 0"><iframe src="${escapeAttr(v.video)}" style="width:100%;height:300px;border:0;border-radius:8px"></iframe></div>` : '';
+      el.innerHTML = `<h4>${escapeHtml(v.title)}</h4>${imgHtml}${vidHtml}${v.text?`<p>${escapeHtml(v.text)}</p>`:''}`;
+      if(role === 'admin' || role === 'owner'){
+        const edit = document.createElement('button'); edit.className='small-btn edit'; edit.textContent='Edit';
+        edit.onclick = async ()=>{ const nt = prompt('New title', v.title); const ni = prompt('New image URL', v.image||''); const nv = prompt('New video URL', v.video||''); const ntxt = prompt('New text', v.text||''); if(nt){ await update(ref(db,'positives/'+k),{title:nt,image:ni||null,video:nv||null,text:ntxt||null}); renderPositives(); } };
+        const del = document.createElement('button'); del.className='small-btn del'; del.textContent='Delete';
+        del.onclick = async ()=>{ if(confirm('Delete?')){ await remove(ref(db,'positives/'+k)); renderPositives(); } };
+        el.appendChild(edit); el.appendChild(del);
+      }
+      list.appendChild(el);
+    });
+  }
+
+  // Admin management (owner only)
+  document.getElementById('promoteBtn').addEventListener('click', async ()=>{
+    const email = document.getElementById('adminEmailInput').value.trim();
+    if(!email){ alert('Enter email'); return; }
+    const role = await getRole(); if(role !== 'owner'){ alert('Only owner can add admins'); return; }
+    const usersSnap = await get(ref(db, 'users'));
+    let foundUid = null;
+    usersSnap.forEach(c => { if(c.val().email === email) foundUid = c.key; });
+    if(!foundUid){ alert('User not found (they must sign up first)'); return; }
+    await update(ref(db, 'users/' + foundUid), { role: 'admin' });
+    alert('Promoted to admin');
+    await renderAdmins();
+  });
+
+  document.getElementById('demoteBtn').addEventListener('click', async ()=>{
+    const email = document.getElementById('adminEmailInput').value.trim();
+    if(!email){ alert('Enter email'); return; }
+    const role = await getRole(); if(role !== 'owner'){ alert('Only owner can remove admins'); return; }
+    const usersSnap = await get(ref(db, 'users'));
+    let foundUid = null;
+    usersSnap.forEach(c => { if(c.val().email === email) foundUid = c.key; });
+    if(!foundUid){ alert('User not found'); return; }
+    await update(ref(db, 'users/' + foundUid), { role: 'user' });
+    alert('Demoted to user');
+    await renderAdmins();
+  });
+
+  async function renderAdmins(){
+    const cont = document.getElementById('adminsList'); cont.innerHTML = '';
+    const role = await getRole(); if(role !== 'owner'){ cont.innerHTML = '<div class="muted">Only owner can view admin list</div>'; return; }
+    const usersSnap = await get(ref(db, 'users'));
+    usersSnap.forEach(c => {
+      const u = c.val(); const uid = c.key;
+      if(u.role === 'admin' || u.role === 'owner'){
+        const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.alignItems='center'; row.style.padding='8px 0';
+        row.innerHTML = `<div>${escapeHtml(u.email)} <span class="muted">(${u.role})</span></div>`;
+        const actions = document.createElement('div');
+        if(u.role === 'admin'){
+          const dem = document.createElement('button'); dem.className='small-btn del'; dem.textContent='Make user'; dem.onclick = async ()=>{ if(confirm('Demote this admin?')){ await update(ref(db,'users/'+uid),{role:'user'}); renderAdmins(); } };
+          actions.appendChild(dem);
+        } else {
+          const info = document.createElement('span'); info.className='muted'; info.textContent='Owner'; actions.appendChild(info);
+        }
+        row.appendChild(actions); cont.appendChild(row);
+      }
+    });
+  }
+
+  // render everything (used after login or role change)
+  async function renderAll(){
+    await toggleAdminPanels();
+    await renderVideos();
+    await renderPosts();
+    await renderPositives();
+    await renderAdmins();
+  }
+
+  // helpers
+  function escapeHtml(s){ if(!s) return ''; return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
+  function escapeAttr(s){ if(!s) return ''; return String(s).replace(/"/g,'&quot;'); }
+
+  // initial: show auth UI; onAuthStateChanged controls the rest
+  document.getElementById('app').style.display = 'none';
+
+  /********** NEW: Mobile menu toggle behavior (safe, minimal) **********/
+  const menuToggle = document.getElementById('menuToggle');
+  const sidebar = document.querySelector('.sidebar');
+  const layout = document.querySelector('.layout');
+
+  function openMobileMenu(){
+    sidebar.classList.add('open');
+    layout.classList.add('shifted');
+    menuToggle.setAttribute('aria-expanded', 'true');
+  }
+  function closeMobileMenu(){
+    sidebar.classList.remove('open');
+    layout.classList.remove('shifted');
+    menuToggle.setAttribute('aria-expanded', 'false');
+  }
+  function toggleMobileMenu(){
+    if(sidebar.classList.contains('open')) closeMobileMenu();
+    else openMobileMenu();
+  }
+  function closeMobileMenuIfOpen(){
+    if(window.innerWidth <= 900 && sidebar.classList.contains('open')) closeMobileMenu();
+  }
+
+  // toggle button click
+  menuToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleMobileMenu();
+  });
+
+  // clicking outside (on content) closes menu on small screens
+  document.addEventListener('click', (e) => {
+    if(window.innerWidth > 900) return;
+    const target = e.target;
+    // if click inside sidebar or on the toggle, ignore
+    if(sidebar.contains(target) || menuToggle.contains(target)) return;
+    // otherwise close
+    closeMobileMenuIfOpen();
+  });
+
+  // when nav-item clicked, close menu (helpful on mobile)
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      if(window.innerWidth <= 900) closeMobileMenuIfOpen();
+    });
+  });
+
+  // handle window resize: if moving to desktop, ensure classes are cleared
+  window.addEventListener('resize', () => {
+    if(window.innerWidth > 900){
+      sidebar.classList.remove('open');
+      layout.classList.remove('shifted');
+      menuToggle.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  /**************** end mobile menu code ****************/
+
+</script>
+</body>
+</html>
