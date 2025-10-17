@@ -1,3 +1,4 @@
+<!-- FULL UPDATED CODE WILL BE WRITTEN HERE -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +7,7 @@
 <title>SF0 — Role Based Site</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{--blue:#007aff;--bg:#f5f7fb;--card:#fff;--danger:#ff3b30;--muted:#6b7280}
+:root{--blue:#007aff;--bg:#f5f7fb;--card:#fff;--danger:#ff3b30;--muted:#6b7280;--nav-active:#e6f0ff}
 *{box-sizing:border-box}
 body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; margin:0; background:var(--bg); color:#111}
 header{padding:28px 16px;text-align:center;color:var(--blue);font-weight:600;font-size:28px}
@@ -26,23 +27,21 @@ textarea{min-height:100px;resize:vertical}
 .app {display:none}
 .header-bar{display:flex;justify-content:space-between;align-items:center;padding:12px 0}
 
-/* New: menu toggle button (hidden by default, shown on small screens) */
-#menuToggle{
-  display:none;
-  background:transparent;
-  border:0;
-  font-size:20px;
-  padding:8px 10px;
-  cursor:pointer;
-  border-radius:8px;
-}
+/* Mobile menu button */
+#menuToggle{display:none;background:transparent;border:0;font-size:20px;padding:8px 10px;cursor:pointer;border-radius:8px}
 
-/* Sidebar - desktop behavior unchanged */
+/* Sidebar - desktop */
 .sidebar{width:72px;background:#fff;border-right:1px solid #e6e9f0;padding-top:18px;transition:width .25s;min-height:70vh;position:sticky;top:20px}
 .sidebar:hover{width:220px}
-.nav-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;margin:8px;cursor:pointer}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;margin:8px;cursor:pointer;transition:all .22s ease}
 .nav-item span{opacity:0;transition:opacity .25s}
 .sidebar:hover .nav-item span{opacity:1}
+
+/* active nav style */
+.nav-item.active{background:var(--nav-active);color:var(--blue);transform:translateX(4px);box-shadow:0 6px 18px rgba(2,6,23,0.06)}
+.nav-item .icon{font-size:18px}
+.nav-item .label{font-weight:600}
+
 .content{padding:18px}
 .card{background:#fff;padding:16px;border-radius:12px;box-shadow:0 8px 24px rgba(2,6,23,0.04);margin-bottom:16px}
 .admin-panel{display:none;margin-bottom:12px}
@@ -51,58 +50,35 @@ textarea{min-height:100px;resize:vertical}
 .controls{margin-top:8px}
 .controls button{margin-right:8px}
 
-/* Responsive adjustments and sliding drawer behavior */
+/* Fullscreen mobile menu overlay */
+.mobile-menu-overlay{position:fixed;inset:0;background:rgba(3,10,20,0.75);display:none;align-items:center;justify-content:center;z-index:2000}
+.mobile-menu-overlay.open{display:flex}
+.mobile-menu{background:#fff;width:100%;height:100%;padding:28px 18px;display:flex;flex-direction:column;gap:12px;transform:translateY(8px);animation:menuIn .28s ease}
+@keyframes menuIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.mobile-menu .nav-item{margin:6px 0;padding:14px;border-radius:12px;background:transparent;color:#111}
+.mobile-menu .nav-item .label{margin-left:10px}
+.mobile-menu .close-row{display:flex;justify-content:space-between;align-items:center}
+
+/* Responsive adjustments */
 @media (max-width:900px){
-  /* layout becomes block by default */
   .layout{display:block}
-
-  /* Hide original full-width behavior and make sidebar a sliding drawer */
-  .sidebar{
-    /* make sidebar fixed (drawer) and off-canvas by default */
-    position:fixed;
-    left:0;
-    top:72px; /* below header */
-    width:220px; /* drawer width on mobile */
-    height:calc(100vh - 72px);
-    transform:translateX(-100%); /* hidden initially */
-    transition:transform .28s ease;
-    z-index:1000;
-    box-shadow: 6px 0 18px rgba(2,6,23,0.08);
-    border-right:1px solid #e6e9f0;
-    padding-top:12px;
-    overflow:auto;
-  }
-
-  /* When open, translate to 0 (visible) */
-  .sidebar.open{
-    transform:translateX(0);
-  }
-
-  /* show hamburger button on small screens */
-  #menuToggle{
-    display:inline-block;
-    margin-right:10px;
-  }
-
-  /* make header-bar content align center-left (so toggle sits nicely) */
-  .header-bar{gap:8px; padding:10px 0}
-
-  /* push content to the right when layout has .shifted */
-  /* note: we use margin-left on .app > .layout container to shift content */
-  .layout.shifted{
-    margin-left:220px; /* same width as sidebar */
-    transition:margin-left .28s ease;
-  }
-
-  /* ensure main content takes full width inside the shifted layout */
+  .sidebar{position:fixed;left:0;top:72px;width:220px;height:calc(100vh - 72px);transform:translateX(-100%);transition:transform .28s ease;z-index:1000;box-shadow:6px 0 18px rgba(2,6,23,0.08);border-right:1px solid #e6e9f0;padding-top:12px;overflow:auto}
+  .sidebar.open{transform:translateX(0)}
+  #menuToggle{display:inline-block;margin-right:10px}
+  .header-bar{gap:8px;padding:10px 0}
+  .layout.shifted{margin-left:220px;transition:margin-left .28s ease}
   .content{padding:14px}
-
-  /* change original mobile sidebar fallback (previous rule) to not interfere */
   .sidebar{display:block}
   .nav-item{white-space:nowrap}
+
+  /* hide desktop collapsed labels hover behavior on mobile */
+  .sidebar:hover{width:220px}
 }
 
-/* keep existing small-screen fallback for widths >900 removed earlier; other CSS unchanged */
+/* small visual tweaks */
+.edit-form input, .edit-form textarea{width:100%;margin-bottom:8px}
+.edit-controls{display:flex;gap:8px;justify-content:flex-end}
+
 </style>
 </head>
 <body>
@@ -150,13 +126,13 @@ textarea{min-height:100px;resize:vertical}
 
   <div class="layout" style="display:flex;gap:18px">
     <nav class="sidebar" aria-label="Main navigation">
-      <div class="nav-item" onclick="showSection('home')">🏠<span>Home</span></div>
-      <div class="nav-item" onclick="showSection('videos')">🎥<span>Videos</span></div>
-      <div class="nav-item" onclick="showSection('posts')">📝<span>Posts</span></div>
-      <div class="nav-item" onclick="showSection('positives')">🌟<span>Positive Thinking</span></div>
-      <div class="nav-item" onclick="showSection('admins')">🛠️<span>Manage Admins</span></div>
-      <div class="nav-item" onclick="showSection('about')">ℹ️<span>About</span></div>
-      <div class="nav-item" onclick="showSection('contact')">📞<span>Contact</span></div>
+      <div class="nav-item" data-target="home">🏠<span class="label">Home</span></div>
+      <div class="nav-item" data-target="videos">🎥<span class="label">Videos</span></div>
+      <div class="nav-item" data-target="posts">📝<span class="label">Posts</span></div>
+      <div class="nav-item" data-target="positives">🌟<span class="label">Positive Thinking</span></div>
+      <div class="nav-item" data-target="admins">🛠️<span class="label">Manage Admins</span></div>
+      <div class="nav-item" data-target="about">ℹ️<span class="label">About</span></div>
+      <div class="nav-item" data-target="contact">📞<span class="label">Contact</span></div>
     </nav>
 
     <main class="content" style="flex:1">
@@ -227,6 +203,25 @@ textarea{min-height:100px;resize:vertical}
   <footer style="text-align:center;padding:16px;color:var(--muted)">SF0 • Official</footer>
 </div>
 
+<!-- Fullscreen mobile menu overlay -->
+<div id="mobileMenuOverlay" class="mobile-menu-overlay" aria-hidden="true">
+  <div class="mobile-menu" role="dialog" aria-modal="true" aria-label="Main menu">
+    <div class="close-row">
+      <strong style="color:var(--blue)">Menu</strong>
+      <button id="mobileClose" class="small-btn" aria-label="Close menu">✕</button>
+    </div>
+    <div style="height:8px"></div>
+    <!-- duplicate nav items for mobile overlay to ensure full-screen nav -->
+    <div class="nav-item" data-target="home">🏠<span class="label">Home</span></div>
+    <div class="nav-item" data-target="videos">🎥<span class="label">Videos</span></div>
+    <div class="nav-item" data-target="posts">📝<span class="label">Posts</span></div>
+    <div class="nav-item" data-target="positives">🌟<span class="label">Positive Thinking</span></div>
+    <div class="nav-item" data-target="admins">🛠️<span class="label">Manage Admins</span></div>
+    <div class="nav-item" data-target="about">ℹ️<span class="label">About</span></div>
+    <div class="nav-item" data-target="contact">📞<span class="label">Contact</span></div>
+  </div>
+</div>
+
 <!-- Firebase & App logic -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
@@ -270,7 +265,6 @@ textarea{min-height:100px;resize:vertical}
     try{
       const uc = await createUserWithEmailAndPassword(auth, email, pass);
       await sendEmailVerification(uc.user);
-      // set users/{uid} record (role user or owner)
       const role = (email === OWNER_EMAIL) ? 'owner' : 'user';
       await set(ref(db, 'users/' + uc.user.uid), { email, role });
       alert('Account created. Please verify email (check Spam).');
@@ -287,55 +281,61 @@ textarea{min-height:100px;resize:vertical}
     try{
       const uc = await signInWithEmailAndPassword(auth, email, pass);
       if(!uc.user.emailVerified){ await signOut(auth); alert('Please verify your email first.'); return; }
-      // onAuthStateChanged will handle UI
     }catch(e){ document.getElementById('loginError').textContent = e.message; }
   });
 
   // logout
   document.getElementById('logoutBtn').addEventListener('click', ()=> signOut(auth));
 
-  // auth state changes - auto-create users node if missing, upgrade owner, show UI
+  // auth state changes
   onAuthStateChanged(auth, async user => {
     if(user){
       currentEmail.textContent = user.email;
-      // ensure users/{uid} exists with role
       const uRef = ref(db, 'users/' + user.uid);
       const snap = await get(uRef);
       if(!snap.exists()){
         const role = (user.email === OWNER_EMAIL) ? 'owner' : 'user';
         await set(uRef, { email: user.email, role });
       } else {
-        // if user email is OWNER_EMAIL but role not owner, upgrade
         if(user.email === OWNER_EMAIL && snap.val().role !== 'owner'){
           await update(uRef, { role: 'owner' });
         }
       }
 
-      // show app
       authWrap.style.display = 'none';
       appWrap.style.display = 'block';
-      // toggle panels & render content
       await toggleAdminPanels();
       await renderAll();
+      // ensure active nav highlight
+      setActiveNav('home');
     } else {
-      // signed out
       authWrap.style.display = 'block';
       appWrap.style.display = 'none';
       currentEmail.textContent = '';
     }
   });
 
-  // helper: show section
+  // helper: show section + set active nav
   window.showSection = (id) => {
     document.querySelectorAll('section[id]').forEach(s => s.style.display = 'none');
     const el = document.getElementById(id);
     if(el) el.style.display = 'block';
-
-    // On small screens, close the drawer when a nav item is tapped
-    if(window.innerWidth <= 900){
-      closeMobileMenuIfOpen();
-    }
+    setActiveNav(id);
+    // On small screens, close the overlay/drawer when a nav item is tapped
+    if(window.innerWidth <= 900){ closeMobileMenuIfOpen(); closeMobileOverlayIfOpen(); }
   };
+
+  // set active nav item (both sidebar and mobile overlay)
+  function setActiveNav(target){
+    // sidebar items
+    document.querySelectorAll('nav.sidebar .nav-item').forEach(it => {
+      if(it.dataset.target === target) it.classList.add('active'); else it.classList.remove('active');
+    });
+    // overlay items
+    document.querySelectorAll('#mobileMenuOverlay .nav-item').forEach(it => {
+      if(it.dataset.target === target) it.classList.add('active'); else it.classList.remove('active');
+    });
+  }
 
   // UTIL: get role
   async function getRole(){
@@ -350,7 +350,6 @@ textarea{min-height:100px;resize:vertical}
   async function toggleAdminPanels(){
     const role = await getRole();
     document.querySelectorAll('.admin-panel').forEach(p => p.style.display = (role === 'admin' || role === 'owner') ? 'block' : 'none');
-    // show admins section only to owner
     document.getElementById('admins').style.display = (role === 'owner') ? 'block' : 'none';
   }
 
@@ -391,7 +390,7 @@ textarea{min-height:100px;resize:vertical}
     });
   }
 
-  // Posts (text + image)
+  // Posts (text + image) — with inline edit form for admins
   document.getElementById('uploadPost').addEventListener('click', async ()=>{
     const title = document.getElementById('postTitle').value.trim();
     const content = document.getElementById('postText').value.trim();
@@ -413,15 +412,52 @@ textarea{min-height:100px;resize:vertical}
     snap.forEach(c => {
       const p = c.val(); const k = c.key;
       const el = document.createElement('div'); el.className = 'post';
-      let imgHtml = p.image ? `<div style="margin:8px 0"><img src="${escapeAttr(p.image)}" style="max-width:300px;border-radius:8px"></div>` : '';
-      el.innerHTML = `<h4>${escapeHtml(p.title)}</h4>${imgHtml}<p>${escapeHtml(p.content)}</p>`;
+      el.innerHTML = `<div class="post-body"><h4>${escapeHtml(p.title)}</h4>${p.image?`<div style="margin:8px 0"><img src="${escapeAttr(p.image)}" style="max-width:300px;border-radius:8px"></div>`:''}<p>${escapeHtml(p.content)}</p></div>`;
+
       if(role === 'admin' || role === 'owner'){
+        const controls = document.createElement('div'); controls.style.marginTop='8px';
         const edit = document.createElement('button'); edit.className='small-btn edit'; edit.textContent='Edit';
-        edit.onclick = async ()=>{ const nt = prompt('New title', p.title); const nc = prompt('New content', p.content); const ni = prompt('New image URL', p.image||''); if(nt && nc){ await update(ref(db,'posts/'+k),{title:nt,content:nc,image:ni||null}); renderPosts(); } };
         const del = document.createElement('button'); del.className='small-btn del'; del.textContent='Delete';
+
+        // Inline edit handler (keeps everything on same page)
+        edit.onclick = async ()=>{
+          // hide current body
+          const body = el.querySelector('.post-body'); body.style.display='none';
+          // create edit form
+          const form = document.createElement('div'); form.className='edit-form card';
+          form.innerHTML = `
+            <input type="text" class="edit-title" value="${escapeAttr(p.title)}">
+            <textarea class="edit-content">${escapeHtml(p.content)}</textarea>
+            <input type="text" class="edit-image" value="${escapeAttr(p.image||'')}">
+            <div class="edit-controls">
+              <button class="btn save">Save</button>
+              <button class="small-btn cancel" style="background:#eee">Cancel</button>
+            </div>
+          `;
+          el.appendChild(form);
+
+          // save
+          form.querySelector('.save').onclick = async ()=>{
+            const nt = form.querySelector('.edit-title').value.trim();
+            const nc = form.querySelector('.edit-content').value.trim();
+            const ni = form.querySelector('.edit-image').value.trim();
+            if(!nt || !nc){ alert('Title & content required'); return; }
+            await update(ref(db,'posts/'+k),{title:nt,content:nc,image:ni||null});
+            await renderPosts();
+          };
+
+          // cancel
+          form.querySelector('.cancel').onclick = ()=>{
+            form.remove(); body.style.display='block';
+          };
+        };
+
         del.onclick = async ()=>{ if(confirm('Delete post?')){ await remove(ref(db,'posts/'+k)); renderPosts(); } };
-        el.appendChild(edit); el.appendChild(del);
+
+        controls.appendChild(edit); controls.appendChild(del);
+        el.appendChild(controls);
       }
+
       list.appendChild(el);
     });
   }
@@ -527,10 +563,12 @@ textarea{min-height:100px;resize:vertical}
   // initial: show auth UI; onAuthStateChanged controls the rest
   document.getElementById('app').style.display = 'none';
 
-  /********** NEW: Mobile menu toggle behavior (safe, minimal) **********/
+  /********** Mobile menu / overlay behavior **********/
   const menuToggle = document.getElementById('menuToggle');
   const sidebar = document.querySelector('.sidebar');
   const layout = document.querySelector('.layout');
+  const mobileOverlay = document.getElementById('mobileMenuOverlay');
+  const mobileClose = document.getElementById('mobileClose');
 
   function openMobileMenu(){
     sidebar.classList.add('open');
@@ -546,39 +584,56 @@ textarea{min-height:100px;resize:vertical}
     if(sidebar.classList.contains('open')) closeMobileMenu();
     else openMobileMenu();
   }
-  function closeMobileMenuIfOpen(){
-    if(window.innerWidth <= 900 && sidebar.classList.contains('open')) closeMobileMenu();
-  }
+  function closeMobileMenuIfOpen(){ if(window.innerWidth <= 900 && sidebar.classList.contains('open')) closeMobileMenu(); }
 
-  // toggle button click
+  // Overlay (fullscreen) open/close
+  function openMobileOverlay(){
+    mobileOverlay.classList.add('open');
+    mobileOverlay.setAttribute('aria-hidden','false');
+  }
+  function closeMobileOverlay(){
+    mobileOverlay.classList.remove('open');
+    mobileOverlay.setAttribute('aria-hidden','true');
+  }
+  function toggleMobileOverlay(){ if(mobileOverlay.classList.contains('open')) closeMobileOverlay(); else openMobileOverlay(); }
+  function closeMobileOverlayIfOpen(){ if(window.innerWidth <= 900 && mobileOverlay.classList.contains('open')) closeMobileOverlay(); }
+
+  // toggle button click: open fullscreen overlay on mobile, else open drawer
   menuToggle.addEventListener('click', (e) => {
     e.stopPropagation();
-    toggleMobileMenu();
+    if(window.innerWidth <= 900) toggleMobileOverlay(); else toggleMobileMenu();
   });
 
-  // clicking outside (on content) closes menu on small screens
+  mobileClose.addEventListener('click', (e)=>{ e.stopPropagation(); closeMobileOverlay(); });
+
+  // clicking outside (on content) closes menu/overlay on small screens
   document.addEventListener('click', (e) => {
     if(window.innerWidth > 900) return;
     const target = e.target;
-    // if click inside sidebar or on the toggle, ignore
+    if(mobileOverlay.contains(target) && !document.querySelector('.mobile-menu').contains(target)) return; // clicked in overlay region
     if(sidebar.contains(target) || menuToggle.contains(target)) return;
-    // otherwise close
-    closeMobileMenuIfOpen();
+    closeMobileMenuIfOpen(); closeMobileOverlayIfOpen();
   });
 
-  // when nav-item clicked, close menu (helpful on mobile)
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', () => {
-      if(window.innerWidth <= 900) closeMobileMenuIfOpen();
+  // when nav-item clicked, navigate and close menus
+  function wireNavItems(root){
+    root.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        const t = item.dataset.target;
+        showSection(t);
+        if(window.innerWidth <= 900){ closeMobileOverlay(); closeMobileMenuIfOpen(); }
+      });
     });
-  });
+  }
+  // wire both sidebar and overlay navs
+  wireNavItems(document);
+  wireNavItems(document.getElementById('mobileMenuOverlay'));
 
-  // handle window resize: if moving to desktop, ensure classes are cleared
+  // handle window resize
   window.addEventListener('resize', () => {
     if(window.innerWidth > 900){
-      sidebar.classList.remove('open');
-      layout.classList.remove('shifted');
-      menuToggle.setAttribute('aria-expanded', 'false');
+      sidebar.classList.remove('open'); layout.classList.remove('shifted'); menuToggle.setAttribute('aria-expanded','false');
+      closeMobileOverlay();
     }
   });
 
