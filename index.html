@@ -1,720 +1,760 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SF0 — Role Based Site</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root{
-      --blue: #2f80ed;
-      --bg: #f7fafc;
-      --card: #ffffff;
-      --muted: #6b7280;
-      --danger: #ff3b30;
-      --nav-active: #e6f0ff;
-      --glass: rgba(255,255,255,0.85);
-      --max-width: 1200px;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:#0b1220}
-    .wrap{max-width:var(--max-width);margin:0 auto;padding:20px 24px;}
-    header{width:100%;text-align:center;padding:18px 0 8px 0;font-weight:700;font-size:36px;color:#0b1220}
-    .layout{display:flex;gap:28px;align-items:flex-start}
-    /* Sidebar */
-    .sidebar{
-      width:260px;
-      background:var(--card);
-      border-radius:12px;
-      padding:18px;
-      box-shadow:0 8px 30px rgba(2,6,23,0.06);
-      height:calc(100vh - 120px);
-      position:sticky; top:72px; overflow:auto;
-    }
-    .brand{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
-    /* removed blue logo above navbar per request - keep only title text */
-    .brand h3{margin:0;font-size:18px;font-weight:700}
-    .brand .muted{font-size:13px;color:var(--muted)}
-    .nav{margin-top:6px;display:flex;flex-direction:column;gap:6px}
-    .nav-item{
-      display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;transition:all .15s ease;color:inherit;text-decoration:none;border:1px solid transparent;
-    }
-    .nav-item .ico{width:28px;text-align:center;font-size:18px;color:var(--muted)}
-    .nav-item .label{font-weight:600}
-    .nav-item:hover{transform:translateX(6px);background:rgba(0,0,0,0.03)}
-    .nav-item.active{background:var(--nav-active);color:var(--blue);box-shadow:0 6px 18px rgba(2,6,23,0.04);transform:none;border-color:rgba(47,128,237,0.06)}
-    /* Main */
-    main{flex:1}
-    .card{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 8px 24px rgba(2,6,23,0.04);margin-bottom:20px}
-    .flex-between{display:flex;justify-content:space-between;align-items:center}
-    .tag{padding:6px 10px;border-radius:8px;background:rgba(0,0,0,0.04);font-size:12px}
-    h2.section-title{margin:0 0 6px 0;font-size:26px}
-    .muted{color:var(--muted);font-size:14px}
-    .small-muted{color:var(--muted);font-size:13px}
-    /* Videos card */
-    .video-frame{background:#f1f5f9;border-radius:10px;height:160px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(2,6,23,0.02)}
-    .upload-btn{background:var(--blue);color:#fff;padding:10px 16px;border-radius:10px;border:0;cursor:pointer;font-weight:600}
-    .small-btn{padding:8px 12px;border-radius:8px;border:0;cursor:pointer;background:#eef2ff}
-    /* Posts list */
-    .post-item{border-radius:10px;padding:14px;background:var(--card);box-shadow:0 6px 18px rgba(2,6,23,0.03);margin-bottom:12px}
-    .post-item h4{margin:0 0 6px 0}
-    /* forms */
-    input,textarea,select,button{font-family:inherit;font-size:15px}
-    input,textarea,select{padding:10px;border-radius:8px;border:1px solid #e6e9f0;background:#fff}
-    textarea{min-height:100px;resize:vertical}
-    .row{display:flex;gap:8px;flex-wrap:wrap}
-    .controls{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
-    .count{font-weight:600;margin-left:6px}
-    .comment{padding:8px;border-radius:8px;margin-bottom:8px;background:linear-gradient(180deg,rgba(0,0,0,0.02),transparent)}
-    .admin-panel{display:none;margin-bottom:12px}
-    .admin-row{border-radius:10px;padding:10px;margin-bottom:10px;background:var(--card);box-shadow:0 6px 18px rgba(2,6,23,0.04)}
-    .inline-muted{color:var(--muted);font-size:13px}
-    footer{padding:12px;text-align:center;color:var(--muted)}
-    /* responsive */
-    @media (max-width:1000px){
-      .layout{flex-direction:column}
-      .sidebar{position:relative;height:auto;width:100%}
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SF0 — Role Based Site</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#007aff; --bg:#f5f7fb; --card:#ffffff; --muted:#6b7280; --danger:#ff3b30; --nav-active:#e6f0ff;
+    --glass: rgba(255,255,255,0.85);
+  }
+  [data-theme="dark"]{
+    --blue:#4ea1ff; --bg:#0b1220; --card:#07101a; --muted:#9aa6b2; --nav-active:rgba(78,161,255,0.09); --glass: rgba(255,255,255,0.02);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--text,#0b1220)}
+  header{padding:22px 16px;text-align:center;color:var(--blue);font-weight:700;font-size:22px}
+  .container{max-width:1200px;margin:0 auto;padding:0 14px}
+  .app {display:none}
+  .layout{display:flex;gap:18px;padding-bottom:40px}
+  /* Sidebar */
+  .sidebar{
+    width:240px; background:var(--card); border-radius:12px; padding:12px; box-shadow:0 8px 30px rgba(2,6,23,0.06);
+    height:calc(100vh - 120px); position:sticky; top:72px; overflow:auto; transition:transform .28s ease, width .22s ease;
+  }
+  .brand{display:flex;align-items:center;gap:12px;padding:10px 6px;margin-bottom:6px}
+  .brand .logo{width:46px;height:46px;border-radius:10px;background:linear-gradient(135deg,var(--blue),#00d4ff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+  .brand h3{margin:0;font-size:16px}
+  .nav{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+  .nav-item{
+    display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;transition:all .18s ease;
+    color:inherit;text-decoration:none;user-select:none;
+  }
+  .nav-item .icon{font-size:18px}
+  .nav-item .label{font-weight:600}
+  .nav-item:hover{transform:translateX(6px);background:rgba(0,0,0,0.03)}
+  .nav-item.active{background:var(--nav-active);color:var(--blue);box-shadow:0 6px 18px rgba(2,6,23,0.04);transform:none}
+  /* header bar */
+  .header-bar{display:flex;justify-content:space-between;align-items:center;padding:12px 0}
+  #menuToggle{display:none;background:transparent;border:0;font-size:22px;padding:8px 10px;cursor:pointer;border-radius:8px}
+  .top-right{display:flex;align-items:center;gap:8px}
+  .small-btn{padding:8px 10px;border-radius:8px;border:0;cursor:pointer;background:#eef2ff}
+  .btn{padding:10px 12px;border-radius:10px;border:0;background:var(--blue);color:#fff;cursor:pointer}
+  .muted{color:var(--muted);font-size:13px}
+  .content{flex:1}
+  .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 8px 24px rgba(2,6,23,0.04);margin-bottom:16px}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  input,textarea,select,button{font-family:inherit;font-size:15px}
+  input,textarea,select{padding:10px;border-radius:8px;border:1px solid #e6e9f0;background:#fff}
+  textarea{min-height:100px;resize:vertical}
+  .error{color:var(--danger);font-size:13px;margin-top:6px}
+  .center-card{max-width:520px;margin:36px auto;padding:22px;background:var(--card);border-radius:14px;box-shadow:0 10px 30px rgba(2,6,23,0.06)}
+  footer{padding:16px;text-align:center;color:var(--muted)}
+  /* media */
+  @media (max-width:900px){
+    .layout{flex-direction:column}
+    .sidebar{position:fixed;left:0;top:72px;height:calc(100vh - 72px);transform:translateX(-100%);z-index:1200;width:280px;box-shadow:8px 0 30px rgba(2,6,23,0.12)}
+    .sidebar.open{transform:translateX(0)}
+    #menuToggle{display:inline-block}
+    .overlay{display:none}
+    .overlay.open{display:block;position:fixed;inset:0;background:rgba(3,10,20,0.55);z-index:1100}
+  }
+
+  /* minis */
+  .inline-muted{color:var(--muted);font-size:13px}
+  .post, .video, .positive, .complaint, .admin-row{border-radius:10px;padding:12px;margin-bottom:12px;background:var(--card);box-shadow:0 6px 18px rgba(2,6,23,0.04)}
+  .controls{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+  .count{font-weight:600;margin-left:6px}
+  .comment-box{margin-top:8px}
+  .comment{padding:8px;border-radius:8px;margin-bottom:8px;background:linear-gradient(180deg,rgba(0,0,0,0.02),transparent)}
+  .small-muted{font-size:12px;color:var(--muted)}
+  .admin-panel{display:none;margin-bottom:12px}
+  .flex-between{display:flex;justify-content:space-between;align-items:center}
+  .tag{padding:6px 8px;border-radius:8px;background:rgba(0,0,0,0.04);font-size:12px}
+  /* edit inline */
+  .edit-form input, .edit-form textarea{width:100%;margin-bottom:8px}
+  .edit-controls{display:flex;gap:8px;justify-content:flex-end}
+  /* subtle animations */
+  .fade-in{animation:fadeIn .28s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header>Welcome to SF0</header>
+<header>SF0 — Role Based Site</header>
 
-    <!-- AUTH UIs -->
-    <div id="authWrap" class="card" style="max-width:520px;margin:12px auto;">
-      <div id="authCards" aria-live="polite">
-        <div id="loginView">
-          <h3 style="margin:0 0 8px 0">Login</h3>
-          <input id="loginEmail" type="email" placeholder="Email" style="width:100%" />
-          <input id="loginPass" type="password" placeholder="Password" style="margin-top:8px;width:100%" />
-          <div class="row" style="margin-top:10px">
-            <button id="loginBtn" class="upload-btn">Login</button>
-            <button id="showSignup" class="small-btn">Create account</button>
-            <button id="forgotBtn" class="small-btn" style="background:#fff;border:1px solid #e6e9f0">Forgot password?</button>
-          </div>
-          <div id="loginError" class="small-muted" style="color:var(--danger);margin-top:8px"></div>
-          <div style="margin-top:10px" class="inline-muted">Email must be verified to login. Check your Spam folder.</div>
-        </div>
-
-        <div id="signupView" style="display:none">
-          <h3 style="margin:0 0 8px 0">Create account</h3>
-          <input id="signupEmail" type="email" placeholder="Email" style="width:100%" />
-          <input id="signupPass" type="password" placeholder="Password (6+ chars)" style="margin-top:8px;width:100%" />
-          <div class="row" style="margin-top:10px">
-            <button id="signupBtn" class="upload-btn">Sign up</button>
-            <button id="showLogin" class="small-btn">Back to login</button>
-          </div>
-          <div id="signupError" class="small-muted" style="color:var(--danger);margin-top:8px"></div>
-          <div style="margin-top:10px" class="inline-muted">After signup, check your email and verify. You cannot login until verified.</div>
-        </div>
-
-        <div id="resetView" style="display:none">
-          <h3 style="margin:0 0 8px 0">Reset password</h3>
-          <input id="resetEmail" type="email" placeholder="Enter your account email" style="width:100%" />
-          <div class="row" style="margin-top:10px">
-            <button id="sendReset" class="upload-btn">Send reset link</button>
-            <button id="backToLogin" class="small-btn">Back</button>
-          </div>
-          <div id="resetMsg" class="inline-muted" style="margin-top:8px"></div>
-          <div id="resetError" class="small-muted" style="color:var(--danger);margin-top:8px"></div>
-        </div>
+<!-- AUTH UIs -->
+<div id="authWrap" class="container">
+  <div id="authCards" class="center-card fade-in" aria-live="polite">
+    <div id="loginView">
+      <h2 style="margin:0 0 8px 0">Login</h2>
+      <input id="loginEmail" type="email" placeholder="Email" />
+      <input id="loginPass" type="password" placeholder="Password" style="margin-top:8px" />
+      <div class="row" style="margin-top:10px">
+        <button id="loginBtn" class="btn">Login</button>
+        <button id="showSignup" class="small-btn">Create account</button>
+        <button id="forgotBtn" class="small-btn" style="background:#fff;border:1px solid #e6e9f0">Forgot password?</button>
       </div>
+      <div id="loginError" class="error"></div>
+      <div style="margin-top:10px" class="inline-muted">Email must be verified to login. Check your Spam folder.</div>
     </div>
 
-    <!-- APP -->
-    <div id="app" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div style="display:flex;gap:16px;align-items:center">
-          <!-- removed blue icon above navbar as requested -->
-          <div style="font-weight:700;color:var(--blue)">SF0 Dashboard</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px">
-          <div class="small-muted" id="currentEmail">Not signed</div>
-          <button id="logoutBtn" class="small-btn" style="background:#fee">Logout</button>
-        </div>
+    <div id="signupView" style="display:none">
+      <h2 style="margin:0 0 8px 0">Create account</h2>
+      <input id="signupEmail" type="email" placeholder="Email" />
+      <input id="signupPass" type="password" placeholder="Password (6+ chars)" style="margin-top:8px" />
+      <div class="row" style="margin-top:10px">
+        <button id="signupBtn" class="btn">Sign up</button>
+        <button id="showLogin" class="small-btn">Back to login</button>
       </div>
+      <div id="signupError" class="error"></div>
+      <div style="margin-top:10px" class="inline-muted">After signup, check your email and verify. You cannot login until verified.</div>
+    </div>
 
-      <div class="layout">
-        <!-- Sidebar -->
-        <nav class="sidebar" id="sidebar" aria-label="Main navigation">
-          <div class="brand">
-            <h3>SF0</h3>
-            <div class="muted">Role Based Site</div>
-          </div>
-
-          <div class="nav" id="mainNav">
-            <div class="nav-item active" data-target="home"><div class="ico">🏠</div><div class="label">Home</div></div>
-            <div class="nav-item" data-target="videos"><div class="ico">🎥</div><div class="label">Videos</div></div>
-            <div class="nav-item" data-target="posts"><div class="ico">📝</div><div class="label">Posts</div></div>
-            <div class="nav-item" data-target="positives"><div class="ico">🌟</div><div class="label">Positive Thinking</div></div>
-            <div class="nav-item" data-target="complaints"><div class="ico">✉️</div><div class="label">Complaints</div></div>
-            <div class="nav-item" data-target="admins"><div class="ico">⚙️</div><div class="label">Manage Admins</div></div>
-            <div class="nav-item" data-target="about"><div class="ico">ℹ️</div><div class="label">About</div></div>
-            <div class="nav-item" data-target="contact"><div class="ico">📞</div><div class="label">Contact</div></div>
-          </div>
-        </nav>
-
-        <!-- Main content -->
-        <main>
-          <!-- Home -->
-          <section id="home" class="card" style="display:block">
-            <div class="flex-between">
-              <div>
-                <h2 class="section-title">Welcome</h2>
-                <p class="muted">Welcome to SF0. Use the sidebar to navigate.</p>
-              </div>
-              <div class="tag" id="roleTag">—</div>
-            </div>
-          </section>
-
-          <!-- Videos -->
-          <section id="videos" class="card" style="display:none">
-            <div class="flex-between" style="margin-bottom:12px">
-              <h2 class="section-title">Videos</h2>
-              <div>
-                <!-- Upload visible only to admins via JS panel -->
-                <button id="uploadVideoBtn" class="upload-btn" style="display:none">Upload Video</button>
-              </div>
-            </div>
-
-            <div id="videoAdmin" class="admin-panel card" style="display:none">
-              <h4 style="margin:0 0 8px 0">Upload video (admin)</h4>
-              <input id="videoTitle" placeholder="Title" style="width:100%" />
-              <input id="videoEmbed" placeholder="Embed URL (https://www.youtube.com/embed/ID)" style="margin-top:8px;width:100%"/>
-              <div class="row" style="margin-top:8px">
-                <button id="uploadVideo" class="upload-btn">Upload</button>
-                <button id="clearVideo" class="small-btn">Clear</button>
-              </div>
-            </div>
-
-            <div id="videoList" style="margin-top:12px"></div>
-          </section>
-
-          <!-- Posts -->
-          <section id="posts" class="card" style="display:none">
-            <div class="flex-between" style="margin-bottom:12px">
-              <h2 class="section-title">Posts</h2>
-              <div class="small-muted">Admins can create posts</div>
-            </div>
-
-            <div id="postAdmin" class="admin-panel card" style="display:none">
-              <h4 style="margin:0 0 8px 0">Create post (admin)</h4>
-              <input id="postTitle" placeholder="Title" style="width:100%" />
-              <textarea id="postText" placeholder="Post body" style="margin-top:8px"></textarea>
-              <div class="row" style="margin-top:8px">
-                <button id="uploadPost" class="upload-btn">Publish</button>
-                <button id="clearPost" class="small-btn">Clear</button>
-              </div>
-            </div>
-
-            <div id="postList" style="margin-top:12px"></div>
-          </section>
-
-          <!-- Positives -->
-          <section id="positives" class="card" style="display:none">
-            <h2 class="section-title">Positive Thinking</h2>
-            <div id="positiveList" style="margin-top:8px"></div>
-          </section>
-
-          <!-- Complaints -->
-          <section id="complaints" class="card" style="display:none">
-            <h2 class="section-title">Complaints — Private</h2>
-            <div id="complaintAdmin" class="admin-panel card" style="display:none">
-              <div id="complaintsList"></div>
-            </div>
-            <div class="muted">Users can submit complaints via "Contact" — only admins/owner can see them here.</div>
-          </section>
-
-          <!-- Manage Admins -->
-          <section id="admins" class="card" style="display:none">
-            <h2 class="section-title">Manage Admins (Owner only)</h2>
-            <input id="adminEmailInput" placeholder="User email (to promote/demote)" style="width:100%" />
-            <div class="row" style="margin-top:8px">
-              <button id="promoteBtn" class="upload-btn">Promote to Admin</button>
-              <button id="demoteBtn" class="small-btn" style="background:#fee">Demote to User</button>
-            </div>
-            <div id="adminsList" style="margin-top:12px"></div>
-          </section>
-
-          <!-- About -->
-          <section id="about" class="card" style="display:none">
-            <h2 class="section-title">About</h2>
-            <p class="muted">Designed by Chanuka Mindiw.</p>
-          </section>
-
-          <!-- Contact -->
-          <section id="contact" class="card" style="display:none">
-            <h2 class="section-title">Contact — Complaint (private)</h2>
-            <div>
-              <textarea id="complaintText" placeholder="Write your private complaint here..." style="width:100%"></textarea>
-              <div class="row" style="margin-top:8px">
-                <button id="sendComplaint" class="upload-btn">Send complaint (private)</button>
-                <div id="complaintMsg" class="inline-muted" style="align-self:center;margin-left:8px"></div>
-              </div>
-              <div class="muted" style="margin-top:8px">Only admins/owner can see complaint messages. Your message will not be visible to other users.</div>
-            </div>
-          </section>
-
-        </main>
+    <div id="resetView" style="display:none">
+      <h2 style="margin:0 0 8px 0">Reset password</h2>
+      <input id="resetEmail" type="email" placeholder="Enter your account email" />
+      <div class="row" style="margin-top:10px">
+        <button id="sendReset" class="btn">Send reset link</button>
+        <button id="backToLogin" class="small-btn">Back</button>
       </div>
+      <div id="resetMsg" class="inline-muted" style="margin-top:8px"></div>
+      <div id="resetError" class="error"></div>
+    </div>
+  </div>
+</div>
 
-      <footer>SF0 • Official</footer>
+<!-- APP -->
+<div id="app" class="app container" style="display:none">
+  <div class="header-bar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button id="menuToggle" aria-label="Open menu">☰</button>
+      <div style="font-weight:700;color:var(--blue)">SF0 Dashboard</div>
+    </div>
+
+    <div class="top-right">
+      <div class="inline-muted" id="currentEmail">Not signed</div>
+      <button id="themeToggle" class="small-btn" title="Toggle theme">🌙</button>
+      <button id="logoutBtn" class="small-btn" style="background:#fee">Logout</button>
     </div>
   </div>
 
-  <!-- Firebase & App logic -->
-  <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-  import { getDatabase, ref, set, push, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-
-  // ===== CONFIG =====
-  const firebaseConfig = {
-    apiKey: "AIzaSyCkiB65lvUh04SbfXMfKNjx0GQwAKCcwTY",
-    authDomain: "sf0-yt.firebaseapp.com",
-    databaseURL: "https://sf0-yt-default-rtdb.firebaseio.com/",
-    projectId: "sf0-yt",
-    storageBucket: "sf0-yt.firebasestorage.app",
-    messagingSenderId: "466855199003",
-    appId: "1:466855199003:web:c42db7397a9cd3a37f13be"
-  };
-  // Owner (hardcoded)
-  const OWNER_EMAIL = "chanukamindiw2006@gmail.com";
-  // ===================
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const auth = getAuth(app);
-
-  /* ----------------- Helper DOM ----------------- */
-  const authWrap = document.getElementById('authWrap');
-  const appWrap = document.getElementById('app');
-  const currentEmail = document.getElementById('currentEmail');
-  const roleTag = document.getElementById('roleTag');
-
-  const showLogin = id => {
-    document.getElementById('loginView').style.display = id === 'login' ? 'block' : 'none';
-    document.getElementById('signupView').style.display = id === 'signup' ? 'block' : 'none';
-    document.getElementById('resetView').style.display = id === 'reset' ? 'block' : 'none';
-  };
-
-  /* ----------------- Auth UI wiring ----------------- */
-  document.getElementById('showSignup').onclick = ()=> showLogin('signup');
-  document.getElementById('showLogin').onclick = ()=> showLogin('login');
-  document.getElementById('forgotBtn').onclick = ()=> showLogin('reset');
-  document.getElementById('backToLogin').onclick = ()=> showLogin('login');
-
-  /* Signup */
-  document.getElementById('signupBtn').addEventListener('click', async ()=>{
-    const email = document.getElementById('signupEmail').value.trim();
-    const pass = document.getElementById('signupPass').value.trim();
-    document.getElementById('signupError').textContent = '';
-    if(!email || pass.length < 6){ document.getElementById('signupError').textContent = 'Enter valid email & password (6+ chars)'; return; }
-    try{
-      const uc = await createUserWithEmailAndPassword(auth, email, pass);
-      await sendEmailVerification(uc.user);
-      const role = (email === OWNER_EMAIL) ? 'owner' : 'user';
-      await set(ref(db, 'users/' + uc.user.uid), { email, role });
-      alert('Account created. Please verify email (check Spam).');
-      showLogin('login');
-    }catch(e){
-      document.getElementById('signupError').textContent = e.message;
-    }
-  });
-
-  /* Login */
-  document.getElementById('loginBtn').addEventListener('click', async ()=>{
-    const email = document.getElementById('loginEmail').value.trim();
-    const pass = document.getElementById('loginPass').value.trim();
-    document.getElementById('loginError').textContent = '';
-    if(!email || !pass){ document.getElementById('loginError').textContent = 'Enter email & password'; return; }
-    try{
-      const uc = await signInWithEmailAndPassword(auth, email, pass);
-      if(!uc.user.emailVerified){ await signOut(auth); alert('Please verify your email before logging in.'); return; }
-    }catch(e){
-      document.getElementById('loginError').textContent = e.message;
-    }
-  });
-
-  /* Reset password */
-  document.getElementById('sendReset').addEventListener('click', async ()=>{
-    const email = document.getElementById('resetEmail').value.trim();
-    document.getElementById('resetError').textContent = ''; document.getElementById('resetMsg').textContent = '';
-    if(!email){ document.getElementById('resetError').textContent = 'Enter your email'; return; }
-    try{
-      await sendPasswordResetEmail(auth, email);
-      document.getElementById('resetMsg').textContent = 'Password reset email sent. Check your inbox (and Spam).';
-    }catch(e){ document.getElementById('resetError').textContent = e.message; }
-  });
-
-  /* Logout */
-  document.getElementById('logoutBtn').addEventListener('click', ()=> signOut(auth));
-
-  /* ----------------- Navigation ----------------- */
-  const navItems = Array.from(document.querySelectorAll('.nav-item'));
-  function setActiveNav(target){
-    navItems.forEach(it => {
-      if(it.dataset.target === target) it.classList.add('active'); else it.classList.remove('active');
-    });
-  }
-  function showSection(id){
-    document.querySelectorAll('main section').forEach(s => s.style.display = 'none');
-    const el = document.getElementById(id);
-    if(el) el.style.display = 'block';
-    setActiveNav(id);
-  }
-  navItems.forEach(it => it.addEventListener('click', ()=> showSection(it.dataset.target)));
-
-  /* ----------------- Role helpers ----------------- */
-  async function getRoleForCurrentUser(){
-    const u = auth.currentUser;
-    if(!u) return null;
-    const snap = await get(ref(db, 'users/' + u.uid));
-    if(!snap.exists()) return null;
-    return snap.val().role;
-  }
-
-  /* ----------------- Auth state handling ----------------- */
-  onAuthStateChanged(auth, async (user) => {
-    if(user){
-      currentEmail.textContent = user.email;
-      authWrap.style.display = 'none';
-      appWrap.style.display = 'block';
-      // ensure user record exists
-      const uRef = ref(db, 'users/' + user.uid);
-      const snap = await get(uRef);
-      if(!snap.exists()){
-        const role = (user.email === OWNER_EMAIL) ? 'owner' : 'user';
-        await set(uRef, { email: user.email, role });
-      } else {
-        if(user.email === OWNER_EMAIL && snap.val().role !== 'owner'){
-          await update(uRef, { role: 'owner' });
-        }
-      }
-      await refreshRoleUI();
-      await renderAll();
-      showSection('home');
-    } else {
-      authWrap.style.display = 'block';
-      appWrap.style.display = 'none';
-      currentEmail.textContent = '';
-      showLogin('login');
-    }
-  });
-
-  /* Update UI based on role */
-  async function refreshRoleUI(){
-    const role = await getRoleForCurrentUser();
-    roleTag.textContent = role ? role.toUpperCase() : '—';
-    document.querySelectorAll('.admin-panel').forEach(p => p.style.display = (role === 'admin' || role === 'owner') ? 'block' : 'none');
-    document.getElementById('admins').style.display = (role === 'owner') ? 'block' : 'none';
-    document.getElementById('complaintAdmin').style.display = (role === 'admin' || role === 'owner') ? 'block' : 'none';
-    // show uploadVideoBtn for admin/owner
-    document.getElementById('uploadVideoBtn').style.display = (role === 'admin' || role === 'owner') ? 'inline-block' : 'none';
-  }
-
-  /* ----------------- CONTENT CRUD: Videos, Posts, Positives ----------------- */
-
-  function esc(s){ if(!s) return ''; return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
-  function escAttr(s){ if(!s) return ''; return String(s).replace(/"/g,'&quot;'); }
-
-  /* VIDEOS */
-  document.getElementById('uploadVideoBtn').addEventListener('click', ()=> {
-    // show admin panel if visible
-    const el = document.getElementById('videoAdmin');
-    if(el.style.display === 'block') el.style.display = 'none'; else el.style.display = 'block';
-  });
-
-  document.getElementById('uploadVideo').addEventListener('click', async ()=>{
-    const title = document.getElementById('videoTitle').value.trim();
-    const url = document.getElementById('videoEmbed').value.trim();
-    if(!title || !url){ alert('Title and embed URL required'); return; }
-    const role = await getRoleForCurrentUser();
-    if(role === 'admin' || role === 'owner'){
-      await push(ref(db, 'videos'), { title, url, uploader: auth.currentUser.uid, createdAt: Date.now() });
-      document.getElementById('videoTitle').value = ''; document.getElementById('videoEmbed').value = '';
-      await renderVideos();
-    } else alert('Only admins/owner can upload videos');
-  });
-
-  async function renderVideos(){
-    const listEl = document.getElementById('videoList'); listEl.innerHTML = '';
-    const snap = await get(ref(db, 'videos'));
-    if(!snap.exists()){ listEl.innerHTML = '<div class="muted">No videos yet</div>'; return; }
-    const role = await getRoleForCurrentUser();
-    snap.forEach(child => {
-      const v = child.val(); const k = child.key;
-      const wrapper = document.createElement('div'); wrapper.className = 'video-frame';
-      const left = document.createElement('div'); left.style.width = '100%';
-      left.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <div>
-            <strong>${esc(v.title)}</strong>
-            <div class="small-muted">Uploaded: ${new Date(v.createdAt).toLocaleString()}</div>
-          </div>
-          <div>
-            <span class="small-muted">👍</span> <span class="count" id="vlikes-${k}">0</span>
-          </div>
+  <div class="layout">
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar" aria-label="Main navigation">
+      <div class="brand">
+        <div class="logo">SF</div>
+        <div>
+          <h3 style="margin:0">SF0</h3>
+          <div class="small-muted">Role Based Site</div>
         </div>
-        <div style="background:#fff;border-radius:8px;padding:8px;border:1px solid rgba(2,6,23,0.03)">
-          <iframe src="${escAttr(v.url)}" style="width:100%;height:300px;border:0;border-radius:8px"></iframe>
-        </div>
-        <div class="controls" style="margin-top:12px"></div>
-      `;
-      wrapper.appendChild(left);
-      listEl.appendChild(wrapper);
-
-      // add controls
-      const controls = left.querySelector('.controls');
-      const likeBtn = document.createElement('button'); likeBtn.className='small-btn'; likeBtn.textContent='Like';
-      likeBtn.addEventListener('click', ()=> toggleLike('videos', k));
-      const commentBtn = document.createElement('button'); commentBtn.className='small-btn'; commentBtn.textContent='Comments';
-      commentBtn.addEventListener('click', ()=> toggleComments('videos', k, 'video'));
-      controls.appendChild(likeBtn); controls.appendChild(commentBtn);
-
-      if(role === 'admin' || role === 'owner'){
-        const edit = document.createElement('button'); edit.className='small-btn'; edit.textContent='Edit';
-        edit.onclick = async ()=> {
-          const nt = prompt('New title', v.title); const nu = prompt('New embed URL', v.url);
-          if(nt && nu){ await update(ref(db,'videos/'+k), { title: nt, url: nu }); renderVideos(); }
-        };
-        const del = document.createElement('button'); del.className='small-btn'; del.style.background='#fee'; del.textContent='Delete';
-        del.onclick = async ()=> { if(confirm('Delete this video?')){ await remove(ref(db,'videos/'+k)); renderVideos(); } };
-        controls.appendChild(edit); controls.appendChild(del);
-      }
-
-      watchLikes('videos', k, `vlikes-${k}`);
-    });
-  }
-
-  /* POSTS */
-  document.getElementById('uploadPost').addEventListener('click', async ()=>{
-    const title = document.getElementById('postTitle').value.trim();
-    const content = document.getElementById('postText').value.trim();
-    if(!title || !content){ alert('Title & text required'); return; }
-    const role = await getRoleForCurrentUser();
-    if(role === 'admin' || role === 'owner'){
-      await push(ref(db, 'posts'), { title, content, uploader: auth.currentUser.uid, createdAt: Date.now() });
-      document.getElementById('postTitle').value = ''; document.getElementById('postText').value = '';
-      await renderPosts();
-    } else alert('Only admins/owner can upload posts');
-  });
-
-  async function renderPosts(){
-    const listEl = document.getElementById('postList'); listEl.innerHTML = '';
-    const snap = await get(ref(db, 'posts'));
-    if(!snap.exists()){ listEl.innerHTML = '<div class="muted">No posts yet</div>'; return; }
-    const role = await getRoleForCurrentUser();
-    snap.forEach(child => {
-      const p = child.val(); const k = child.key;
-      const wrapper = document.createElement('div'); wrapper.className = 'post-item';
-      wrapper.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <h4>${esc(p.title)}</h4>
-            <div class="small-muted">Posted: ${new Date(p.createdAt).toLocaleString()}</div>
-          </div>
-          <div><span class="small-muted">👍</span> <span class="count" id="plikes-${k}">0</span></div>
-        </div>
-        <div style="margin-top:10px"><p>${esc(p.content)}</p></div>
-        <div class="controls"></div>
-        <div class="comment-box" id="pcomments-${k}" style="display:none"></div>
-      `;
-      listEl.appendChild(wrapper);
-
-      const controls = wrapper.querySelector('.controls');
-      const likeBtn = document.createElement('button'); likeBtn.className='small-btn'; likeBtn.textContent='Like';
-      likeBtn.addEventListener('click', ()=> toggleLike('posts', k));
-      const commentBtn = document.createElement('button'); commentBtn.className='small-btn'; commentBtn.textContent='Comments';
-      commentBtn.addEventListener('click', ()=> toggleComments('posts', k, 'post'));
-      controls.appendChild(likeBtn); controls.appendChild(commentBtn);
-
-      if(role === 'admin' || role === 'owner'){
-        const edit = document.createElement('button'); edit.className='small-btn'; edit.textContent='Edit';
-        edit.onclick = ()=> inlineEditPost(k, p);
-        const del = document.createElement('button'); del.className='small-btn'; del.style.background='#fee'; del.textContent='Delete';
-        del.onclick = async ()=> { if(confirm('Delete post?')){ await remove(ref(db,'posts/'+k)); renderPosts(); } };
-        controls.appendChild(edit); controls.appendChild(del);
-      }
-
-      watchLikes('posts', k, `plikes-${k}`);
-    });
-  }
-
-  function inlineEditPost(key, data){
-    const posts = document.querySelectorAll('#postList .post-item');
-    let el = null;
-    posts.forEach(p => { if(p.innerHTML.includes(`id="pcomments-${key}"`)) el = p; });
-    if(!el) { renderPosts(); return; }
-    const body = el.querySelector('div:nth-child(2)'); if(body) body.style.display = 'none';
-    const form = document.createElement('div'); form.className = 'edit-form card';
-    form.innerHTML = `
-      <input class="edit-title" value="${escAttr(data.title)}" />
-      <textarea class="edit-content">${esc(data.content)}</textarea>
-      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
-        <button class="upload-btn save">Save</button>
-        <button class="small-btn cancel">Cancel</button>
       </div>
-    `;
-    el.appendChild(form);
-    form.querySelector('.cancel').onclick = ()=> { form.remove(); if(body) body.style.display='block'; };
-    form.querySelector('.save').onclick = async ()=> {
-      const nt = form.querySelector('.edit-title').value.trim();
-      const nc = form.querySelector('.edit-content').value.trim();
-      if(!nt || !nc){ alert('Title & content required'); return; }
-      await update(ref(db, 'posts/' + key), { title: nt, content: nc });
-      await renderPosts();
-    };
-  }
 
-  /* POSITIVES */
-  async function renderPositives(){
-    const el = document.getElementById('positiveList'); el.innerHTML = '';
-    const snap = await get(ref(db, 'positives'));
-    if(!snap.exists()){ el.innerHTML = '<div class="muted">No positive items yet</div>'; return; }
-    snap.forEach(c => {
-      const v = c.val(); const k = c.key;
-      const box = document.createElement('div'); box.className = 'post-item';
-      box.innerHTML = `<strong>${esc(v.title)}</strong><div class="small-muted">${v.text?esc(v.text):''}</div>`;
-      el.appendChild(box);
-    });
-  }
+      <div class="nav" id="mainNav">
+        <div class="nav-item" data-target="home"><div class="icon">🏠</div><div class="label">Home</div></div>
+        <div class="nav-item" data-target="videos"><div class="icon">🎥</div><div class="label">Videos</div></div>
+        <div class="nav-item" data-target="posts"><div class="icon">📝</div><div class="label">Posts</div></div>
+        <div class="nav-item" data-target="positives"><div class="icon">🌟</div><div class="label">Positive Thinking</div></div>
+        <div class="nav-item" data-target="complaints"><div class="icon">✉️</div><div class="label">Complaints</div></div>
+        <div class="nav-item" data-target="admins"><div class="icon">🛠️</div><div class="label">Manage Admins</div></div>
+        <div class="nav-item" data-target="about"><div class="icon">ℹ️</div><div class="label">About</div></div>
+        <div class="nav-item" data-target="contact"><div class="icon">📞</div><div class="label">Contact</div></div>
+      </div>
+    </nav>
 
-  /* ----------------- Likes & Comments ----------------- */
-  async function toggleLike(collection, id){
-    const u = auth.currentUser; if(!u){ alert('Please login to like'); return; }
-    const likeRef = ref(db, `likes/${collection}/${id}/${u.uid}`);
-    const snap = await get(likeRef);
-    if(snap.exists()){
-      await remove(likeRef);
-    } else {
-      await set(likeRef, true);
-    }
-  }
+    <!-- overlay for mobile -->
+    <div id="overlay" class="overlay" aria-hidden="true"></div>
 
-  function watchLikes(collection, id, elId){
-    const counterEl = document.getElementById(elId);
-    const likesRef = ref(db, `likes/${collection}/${id}`);
-    onValue(likesRef, (snap) => {
-      if(counterEl) counterEl.textContent = snap.exists() ? Object.keys(snap.val()).length : '0';
-    }, { onlyOnce: false });
-  }
+    <!-- Main content -->
+    <main class="content">
+      <!-- Home -->
+      <section id="home" class="card" style="display:block">
+        <div class="flex-between">
+          <h3 style="margin:0">Welcome</h3>
+          <div class="tag" id="roleTag">—</div>
+        </div>
+        <p class="muted">Welcome to SF0. Use the sidebar to navigate.</p>
+      </section>
 
-  async function toggleComments(collectionPath, itemId, type){
-    const wrapperId = (type === 'video') ? `vcomments-${itemId}` : `pcomments-${itemId}`;
-    const box = document.getElementById(wrapperId);
-    if(!box) return;
-    if(box.style.display === 'block') { box.style.display = 'none'; return; }
-    box.style.display = 'block';
-    box.innerHTML = `
-      <div class="comment-form">
-        <textarea class="new-comment" placeholder="Write a comment..." style="width:100%;min-height:64px"></textarea>
+      <!-- Videos -->
+      <section id="videos" class="card" style="display:none">
+        <div class="flex-between">
+          <h3 style="margin:0">Videos</h3>
+          <div class="small-muted">Admins can upload & edit</div>
+        </div>
+
+        <div id="videoAdmin" class="admin-panel card" style="display:none">
+          <h4 style="margin:0 0 8px 0">Upload video (admin)</h4>
+          <input id="videoTitle" placeholder="Title" />
+          <input id="videoEmbed" placeholder="Embed URL (https://www.youtube.com/embed/ID)" style="margin-top:8px"/>
+          <div class="row" style="margin-top:8px">
+            <button id="uploadVideo" class="btn">Upload</button>
+            <button id="clearVideo" class="small-btn">Clear</button>
+          </div>
+        </div>
+
+        <div id="videoList" style="margin-top:12px"></div>
+      </section>
+
+      <!-- Posts -->
+      <section id="posts" class="card" style="display:none">
+        <div class="flex-between">
+          <h3 style="margin:0">Posts</h3>
+          <div class="small-muted">Admins can create posts</div>
+        </div>
+
+        <div id="postAdmin" class="admin-panel card" style="display:none">
+          <h4 style="margin:0 0 8px 0">Create post (admin)</h4>
+          <input id="postTitle" placeholder="Title" />
+          <textarea id="postText" placeholder="Post body" style="margin-top:8px"></textarea>
+          <div class="row" style="margin-top:8px">
+            <button id="uploadPost" class="btn">Publish</button>
+            <button id="clearPost" class="small-btn">Clear</button>
+          </div>
+        </div>
+
+        <div id="postList" style="margin-top:12px"></div>
+      </section>
+
+      <!-- Positives -->
+      <section id="positives" class="card" style="display:none">
+        <h3 style="margin:0 0 8px 0">Positive Thinking</h3>
+        <div id="positiveList"></div>
+      </section>
+
+      <!-- Complaints (for admins: view all; for users: shows form in Contact too) -->
+      <section id="complaints" class="card" style="display:none">
+        <h3 style="margin:0 0 8px 0">Complaints — Private</h3>
+        <div id="complaintAdmin" class="admin-panel card" style="display:none">
+          <div id="complaintsList"></div>
+        </div>
+        <div class="muted">Users can submit complaints via "Contact" — only admins/owner can see them here.</div>
+      </section>
+
+      <!-- Manage Admins -->
+      <section id="admins" class="card" style="display:none">
+        <h3 style="margin:0 0 8px 0">Manage Admins (Owner only)</h3>
+        <input id="adminEmailInput" placeholder="User email (to promote/demote)" />
         <div class="row" style="margin-top:8px">
-          <button class="upload-btn postComment">Post comment</button>
-          <div class="small-muted" style="align-self:center;margin-left:8px">Comments are visible to everyone</div>
+          <button id="promoteBtn" class="btn">Promote to Admin</button>
+          <button id="demoteBtn" class="small-btn" style="background:#fee">Demote to User</button>
+        </div>
+        <div id="adminsList" style="margin-top:12px"></div>
+      </section>
+
+      <!-- About -->
+      <section id="about" class="card" style="display:none">
+        <h3 style="margin:0 0 8px 0">About</h3>
+        <p class="muted">Designed by Chanuka Mindiw.</p>
+      </section>
+
+      <!-- Contact -->
+      <section id="contact" class="card" style="display:none">
+        <h3 style="margin:0 0 8px 0">Contact — Complaint (private)</h3>
+        <div>
+          <textarea id="complaintText" placeholder="Write your private complaint here..."></textarea>
+          <div class="row" style="margin-top:8px">
+            <button id="sendComplaint" class="btn">Send complaint (private)</button>
+            <div id="complaintMsg" class="inline-muted" style="align-self:center;margin-left:8px"></div>
+          </div>
+          <div class="muted" style="margin-top:8px">Only admins/owner can see complaint messages. Your message will not be visible to other users.</div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer>SF0 • Official</footer>
+</div>
+
+<!-- Firebase & App logic -->
+<script type="module">
+/*
+  Single-file app JS
+  - Uses Firebase JS SDK v11 (compat modular imports)
+  - Replace firebaseConfig if you wish
+*/
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+import { getDatabase, ref, set, push, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+// ===== CONFIG =====
+const firebaseConfig = {
+  apiKey: "AIzaSyCkiB65lvUh04SbfXMfKNjx0GQwAKCcwTY",
+  authDomain: "sf0-yt.firebaseapp.com",
+  databaseURL: "https://sf0-yt-default-rtdb.firebaseio.com/",
+  projectId: "sf0-yt",
+  storageBucket: "sf0-yt.firebasestorage.app",
+  messagingSenderId: "466855199003",
+  appId: "1:466855199003:web:c42db7397a9cd3a37f13be"
+};
+// Owner (hardcoded)
+const OWNER_EMAIL = "chanukamindiw2006@gmail.com";
+// ===================
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+/* ----------------- Helper DOM ----------------- */
+const authWrap = document.getElementById('authWrap');
+const appWrap = document.getElementById('app');
+const currentEmail = document.getElementById('currentEmail');
+const roleTag = document.getElementById('roleTag');
+
+const showLogin = id => {
+  document.getElementById('loginView').style.display = id === 'login' ? 'block' : 'none';
+  document.getElementById('signupView').style.display = id === 'signup' ? 'block' : 'none';
+  document.getElementById('resetView').style.display = id === 'reset' ? 'block' : 'none';
+};
+
+/* ----------------- Auth UI wiring ----------------- */
+document.getElementById('showSignup').onclick = ()=> showLogin('signup');
+document.getElementById('showLogin').onclick = ()=> showLogin('login');
+document.getElementById('forgotBtn').onclick = ()=> showLogin('reset');
+document.getElementById('backToLogin').onclick = ()=> showLogin('login');
+
+/* Signup */
+document.getElementById('signupBtn').addEventListener('click', async ()=>{
+  const email = document.getElementById('signupEmail').value.trim();
+  const pass = document.getElementById('signupPass').value.trim();
+  document.getElementById('signupError').textContent = '';
+  if(!email || pass.length < 6){ document.getElementById('signupError').textContent = 'Enter valid email & password (6+ chars)'; return; }
+  try{
+    const uc = await createUserWithEmailAndPassword(auth, email, pass);
+    await sendEmailVerification(uc.user);
+    // save user in DB with role user (owner if matches)
+    const role = (email === OWNER_EMAIL) ? 'owner' : 'user';
+    await set(ref(db, 'users/' + uc.user.uid), { email, role });
+    alert('Account created. Please verify email (check Spam).');
+    showLogin('login');
+  }catch(e){
+    document.getElementById('signupError').textContent = e.message;
+  }
+});
+
+/* Login */
+document.getElementById('loginBtn').addEventListener('click', async ()=>{
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value.trim();
+  document.getElementById('loginError').textContent = '';
+  if(!email || !pass){ document.getElementById('loginError').textContent = 'Enter email & password'; return; }
+  try{
+    const uc = await signInWithEmailAndPassword(auth, email, pass);
+    if(!uc.user.emailVerified){ await signOut(auth); alert('Please verify your email before logging in.'); return; }
+  }catch(e){
+    document.getElementById('loginError').textContent = e.message;
+  }
+});
+
+/* Reset password */
+document.getElementById('sendReset').addEventListener('click', async ()=>{
+  const email = document.getElementById('resetEmail').value.trim();
+  document.getElementById('resetError').textContent = ''; document.getElementById('resetMsg').textContent = '';
+  if(!email){ document.getElementById('resetError').textContent = 'Enter your email'; return; }
+  try{
+    await sendPasswordResetEmail(auth, email);
+    document.getElementById('resetMsg').textContent = 'Password reset email sent. Check your inbox (and Spam).';
+  }catch(e){ document.getElementById('resetError').textContent = e.message; }
+});
+
+/* Logout */
+document.getElementById('logoutBtn').addEventListener('click', ()=> signOut(auth));
+
+/* ----------------- Theme toggle ----------------- */
+const themeToggle = document.getElementById('themeToggle');
+const savedTheme = localStorage.getItem('sf0_theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme === 'dark' ? 'dark' : 'light');
+themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+themeToggle.onclick = ()=>{
+  const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  const nxt = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', nxt);
+  localStorage.setItem('sf0_theme', nxt);
+  themeToggle.textContent = nxt === 'dark' ? '☀️' : '🌙';
+};
+
+/* ----------------- Navigation ----------------- */
+const navItems = Array.from(document.querySelectorAll('.nav-item'));
+function setActiveNav(target){
+  navItems.forEach(it => {
+    if(it.dataset.target === target) it.classList.add('active'); else it.classList.remove('active');
+  });
+}
+function showSection(id){
+  document.querySelectorAll('main section').forEach(s => s.style.display = 'none');
+  const el = document.getElementById(id);
+  if(el) el.style.display = 'block';
+  setActiveNav(id);
+  // close mobile sidebar if open
+  if(window.innerWidth <= 900) closeSidebar();
+}
+navItems.forEach(it => it.addEventListener('click', ()=> showSection(it.dataset.target)));
+
+/* Sidebar mobile behavior */
+const menuToggle = document.getElementById('menuToggle');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
+function openSidebar(){ sidebar.classList.add('open'); overlay.classList.add('open'); overlay.style.display='block'; overlay.onclick = closeSidebar; }
+function closeSidebar(){ sidebar.classList.remove('open'); overlay.classList.remove('open'); overlay.style.display='none'; overlay.onclick = null; }
+menuToggle.addEventListener('click', ()=> {
+  if(sidebar.classList.contains('open')) closeSidebar(); else openSidebar();
+});
+window.addEventListener('resize', ()=> { if(window.innerWidth > 900) closeSidebar(); });
+
+/* ----------------- Role helpers ----------------- */
+async function getRoleForCurrentUser(){
+  const u = auth.currentUser;
+  if(!u) return null;
+  const snap = await get(ref(db, 'users/' + u.uid));
+  if(!snap.exists()) return null;
+  return snap.val().role;
+}
+
+/* ----------------- Auth state handling ----------------- */
+onAuthStateChanged(auth, async (user) => {
+  if(user){
+    currentEmail.textContent = user.email;
+    authWrap.style.display = 'none';
+    appWrap.style.display = 'block';
+    // ensure user record exists
+    const uRef = ref(db, 'users/' + user.uid);
+    const snap = await get(uRef);
+    if(!snap.exists()){
+      const role = (user.email === OWNER_EMAIL) ? 'owner' : 'user';
+      await set(uRef, { email: user.email, role });
+    } else {
+      // if owner's email and DB not owner -> update
+      if(user.email === OWNER_EMAIL && snap.val().role !== 'owner'){
+        await update(uRef, { role: 'owner' });
+      }
+    }
+    await refreshRoleUI();
+    await renderAll();
+    showSection('home');
+  } else {
+    authWrap.style.display = 'block';
+    appWrap.style.display = 'none';
+    currentEmail.textContent = '';
+    showLogin('login');
+  }
+});
+
+/* Update UI based on role */
+async function refreshRoleUI(){
+  const role = await getRoleForCurrentUser();
+  roleTag.textContent = role ? role.toUpperCase() : '—';
+  // show/hide admin panels
+  document.querySelectorAll('.admin-panel').forEach(p => p.style.display = (role === 'admin' || role === 'owner') ? 'block' : 'none');
+  // manage-admins visible only to owner
+  document.getElementById('admins').style.display = (role === 'owner') ? 'block' : (document.getElementById('admins') ? 'none' : 'none');
+  // complaintAdmin visible only to admin/owner
+  document.getElementById('complaintAdmin').style.display = (role === 'admin' || role === 'owner') ? 'block' : 'none';
+  // video/post admin panels controlled already via .admin-panel
+}
+
+/* ----------------- CONTENT CRUD: Videos, Posts, Positives ----------------- */
+
+/* Utility helpers for safe HTML */
+function esc(s){ if(!s) return ''; return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+function escAttr(s){ if(!s) return ''; return String(s).replace(/"/g,'&quot;'); }
+
+/* VIDEOS */
+document.getElementById('uploadVideo').addEventListener('click', async ()=>{
+  const title = document.getElementById('videoTitle').value.trim();
+  const url = document.getElementById('videoEmbed').value.trim();
+  if(!title || !url){ alert('Title and embed URL required'); return; }
+  const role = await getRoleForCurrentUser();
+  if(role === 'admin' || role === 'owner'){
+    await push(ref(db, 'videos'), { title, url, uploader: auth.currentUser.uid, createdAt: Date.now() });
+    document.getElementById('videoTitle').value = ''; document.getElementById('videoEmbed').value = '';
+    await renderVideos();
+  } else alert('Only admins/owner can upload videos');
+});
+
+async function renderVideos(){
+  const listEl = document.getElementById('videoList'); listEl.innerHTML = '';
+  const snap = await get(ref(db, 'videos'));
+  if(!snap.exists()){ listEl.innerHTML = '<div class="muted">No videos yet</div>'; return; }
+  const role = await getRoleForCurrentUser();
+  snap.forEach(child => {
+    const v = child.val(); const k = child.key;
+    const wrapper = document.createElement('div'); wrapper.className = 'video fade-in';
+    wrapper.innerHTML = `
+      <div class="flex-between">
+        <div><strong>${esc(v.title)}</strong><div class="small-muted">Uploaded: ${new Date(v.createdAt).toLocaleString()}</div></div>
+        <div>
+          <span class="small-muted">👍</span> <span class="count" id="vlikes-${k}">0</span>
         </div>
       </div>
-      <div class="comments-list" style="margin-top:8px"></div>
+      <div style="margin-top:8px"><iframe src="${escAttr(v.url)}" style="width:100%;height:300px;border:0;border-radius:8px"></iframe></div>
+      <div class="controls" style="margin-top:8px">
+        <button class="small-btn likeVideo" data-id="${k}">Like</button>
+        <button class="small-btn commentToggle" data-type="video" data-id="${k}">Comments</button>
+      </div>
+      <div class="comment-box" id="vcomments-${k}" style="display:none"></div>
     `;
-    const commentsList = box.querySelector('.comments-list');
-    const postBtn = box.querySelector('.postComment');
-    postBtn.addEventListener('click', async ()=>{
-      const txt = box.querySelector('.new-comment').value.trim();
-      if(!txt){ alert('Type a comment'); return; }
-      const u = auth.currentUser; if(!u){ alert('Login to comment'); return; }
-      const cobj = { uid: u.uid, text: txt, email: u.email, createdAt: Date.now() };
-      await push(ref(db, `comments/${collectionPath}/${itemId}`), cobj);
-      box.querySelector('.new-comment').value = '';
-      await renderComments(collectionPath, itemId, commentsList);
-    });
-    await renderComments(collectionPath, itemId, commentsList);
-  }
-
-  async function renderComments(collectionPath, itemId, container){
-    container.innerHTML = '';
-    const snap = await get(ref(db, `comments/${collectionPath}/${itemId}`));
-    if(!snap.exists()){ container.innerHTML = '<div class="small-muted">No comments yet</div>'; return; }
-    snap.forEach(c => {
-      const cm = c.val(); const k = c.key;
-      const div = document.createElement('div'); div.className = 'comment';
-      div.innerHTML = `<div style="display:flex;justify-content:space-between"><div><strong>${esc(cm.email)}</strong> <span class="small-muted">${new Date(cm.createdAt).toLocaleString()}</span></div></div><div style="margin-top:6px">${esc(cm.text)}</div>`;
-      const u = auth.currentUser;
-      if(u && (u.uid === cm.uid)) {
-        const del = document.createElement('button'); del.className='small-btn'; del.textContent='Delete';
-        del.onclick = async ()=> { if(confirm('Delete your comment?')){ await remove(ref(db, `comments/${collectionPath}/${itemId}/${k}`)); renderComments(collectionPath,itemId,container); } };
-        div.appendChild(del);
-      }
-      container.appendChild(div);
-    });
-  }
-
-  /* ----------------- Complaints (private) ----------------- */
-  document.getElementById('sendComplaint').addEventListener('click', async ()=>{
-    const txt = document.getElementById('complaintText').value.trim();
-    document.getElementById('complaintMsg').textContent = '';
-    if(!txt){ document.getElementById('complaintMsg').textContent = 'Enter a message'; return; }
-    const u = auth.currentUser; if(!u){ alert('Login to submit complaint'); return; }
-    await push(ref(db, 'complaints'), { uid: u.uid, email: u.email, text: txt, createdAt: Date.now(), seen: false });
-    document.getElementById('complaintText').value = '';
-    document.getElementById('complaintMsg').textContent = 'Complaint sent (private).';
-  });
-
-  async function renderComplaints(){
-    const list = document.getElementById('complaintsList'); if(!list) return;
-    list.innerHTML = '';
-    const snap = await get(ref(db, 'complaints'));
-    if(!snap.exists()){ list.innerHTML = '<div class="muted">No complaints yet</div>'; return; }
-    snap.forEach(c => {
-      const cm = c.val(); const k = c.key;
-      const row = document.createElement('div'); row.className='admin-row';
-      row.innerHTML = `<div style="display:flex;justify-content:space-between"><div><strong>${esc(cm.email)}</strong> <div class="small-muted">${new Date(cm.createdAt).toLocaleString()}</div></div><div><span class="tag">${cm.seen ? 'Seen' : 'New'}</span></div></div><div style="margin-top:8px">${esc(cm.text)}</div>`;
-      const controls = document.createElement('div'); controls.className='row';
-      const mark = document.createElement('button'); mark.className='small-btn'; mark.textContent = cm.seen ? 'Mark unread' : 'Mark seen';
-      mark.onclick = async ()=> { await update(ref(db, 'complaints/' + k), { seen: !cm.seen }); renderComplaints(); };
+    if(role === 'admin' || role === 'owner'){
+      const edit = document.createElement('button'); edit.className='small-btn'; edit.textContent='Edit';
+      edit.onclick = async ()=> {
+        const nt = prompt('New title', v.title); const nu = prompt('New embed URL', v.url);
+        if(nt && nu){ await update(ref(db,'videos/'+k), { title: nt, url: nu }); renderVideos(); }
+      };
       const del = document.createElement('button'); del.className='small-btn'; del.style.background='#fee'; del.textContent='Delete';
-      del.onclick = async ()=> { if(confirm('Delete complaint?')){ await remove(ref(db,'complaints/'+k)); renderComplaints(); } };
-      controls.appendChild(mark); controls.appendChild(del);
-      row.appendChild(controls);
-      list.appendChild(row);
-    });
+      del.onclick = async ()=> { if(confirm('Delete this video?')){ await remove(ref(db,'videos/'+k)); renderVideos(); } };
+      wrapper.querySelector('.controls').appendChild(edit); wrapper.querySelector('.controls').appendChild(del);
+    }
+    listEl.appendChild(wrapper);
+
+    // attach listeners delegated after append
+    wrapper.querySelector('.likeVideo').addEventListener('click', ()=> toggleLike('videos', k));
+    wrapper.querySelector('.commentToggle').addEventListener('click', ()=> toggleComments('videos', k, 'video'));
+    // render likes count & set up live update
+    watchLikes('videos', k, `vlikes-${k}`);
+  });
+}
+
+/* POSTS */
+document.getElementById('uploadPost').addEventListener('click', async ()=>{
+  const title = document.getElementById('postTitle').value.trim();
+  const content = document.getElementById('postText').value.trim();
+  if(!title || !content){ alert('Title & text required'); return; }
+  const role = await getRoleForCurrentUser();
+  if(role === 'admin' || role === 'owner'){
+    await push(ref(db, 'posts'), { title, content, uploader: auth.currentUser.uid, createdAt: Date.now() });
+    document.getElementById('postTitle').value = ''; document.getElementById('postText').value = '';
+    await renderPosts();
+  } else alert('Only admins/owner can upload posts');
+});
+
+async function renderPosts(){
+  const listEl = document.getElementById('postList'); listEl.innerHTML = '';
+  const snap = await get(ref(db, 'posts'));
+  if(!snap.exists()){ listEl.innerHTML = '<div class="muted">No posts yet</div>'; return; }
+  const role = await getRoleForCurrentUser();
+  snap.forEach(child => {
+    const p = child.val(); const k = child.key;
+    const wrapper = document.createElement('div'); wrapper.className = 'post fade-in';
+    wrapper.innerHTML = `
+      <div class="flex-between">
+        <div><strong>${esc(p.title)}</strong><div class="small-muted">Posted: ${new Date(p.createdAt).toLocaleString()}</div></div>
+        <div><span class="small-muted">👍</span> <span class="count" id="plikes-${k}">0</span></div>
+      </div>
+      <div style="margin-top:8px"><p>${esc(p.content)}</p></div>
+      <div class="controls">
+        <button class="small-btn likePost" data-id="${k}">Like</button>
+        <button class="small-btn commentToggle" data-type="post" data-id="${k}">Comments</button>
+      </div>
+      <div class="comment-box" id="pcomments-${k}" style="display:none"></div>
+    `;
+    if(role === 'admin' || role === 'owner'){
+      const edit = document.createElement('button'); edit.className='small-btn'; edit.textContent='Edit';
+      edit.onclick = ()=> inlineEditPost(k, p);
+      const del = document.createElement('button'); del.className='small-btn'; del.style.background='#fee'; del.textContent='Delete';
+      del.onclick = async ()=> { if(confirm('Delete post?')){ await remove(ref(db,'posts/'+k)); renderPosts(); } };
+      wrapper.querySelector('.controls').appendChild(edit); wrapper.querySelector('.controls').appendChild(del);
+    }
+    listEl.appendChild(wrapper);
+
+    wrapper.querySelector('.likePost').addEventListener('click', ()=> toggleLike('posts', k));
+    wrapper.querySelector('.commentToggle').addEventListener('click', ()=> toggleComments('posts', k, 'post'));
+    watchLikes('posts', k, `plikes-${k}`);
+  });
+}
+
+/* inline edit for posts */
+function inlineEditPost(key, data){
+  const wrapper = document.querySelector(`#postList .post .likePost[data-id="${key}"]`)?.closest('.post');
+  // fallback: find by scanning
+  const posts = document.querySelectorAll('#postList .post');
+  let el = null;
+  posts.forEach(p => { if(p.innerHTML.includes(`data-id="${key}"`)) el = p; });
+  if(!el) { renderPosts(); return; }
+  const body = el.querySelector('div:nth-child(2)'); if(body) body.style.display = 'none';
+  const form = document.createElement('div'); form.className = 'edit-form card';
+  form.innerHTML = `
+    <input class="edit-title" value="${escAttr(data.title)}" />
+    <textarea class="edit-content">${esc(data.content)}</textarea>
+    <div class="edit-controls">
+      <button class="btn save">Save</button>
+      <button class="small-btn cancel">Cancel</button>
+    </div>
+  `;
+  el.appendChild(form);
+  form.querySelector('.cancel').onclick = ()=> { form.remove(); if(body) body.style.display='block'; };
+  form.querySelector('.save').onclick = async ()=> {
+    const nt = form.querySelector('.edit-title').value.trim();
+    const nc = form.querySelector('.edit-content').value.trim();
+    if(!nt || !nc){ alert('Title & content required'); return; }
+    await update(ref(db, 'posts/' + key), { title: nt, content: nc });
+    await renderPosts();
+  };
+}
+
+/* POSITIVES (simple list) */
+async function renderPositives(){
+  const el = document.getElementById('positiveList'); el.innerHTML = '';
+  const snap = await get(ref(db, 'positives'));
+  if(!snap.exists()){ el.innerHTML = '<div class="muted">No positive items yet</div>'; return; }
+  snap.forEach(c => {
+    const v = c.val(); const k = c.key;
+    const box = document.createElement('div'); box.className = 'positive fade-in';
+    box.innerHTML = `<strong>${esc(v.title)}</strong><div class="small-muted">${v.text?esc(v.text):''}</div>`;
+    el.appendChild(box);
+  });
+}
+
+/* ----------------- Likes & Comments ----------------- */
+/*
+  Structure in DB:
+  likes/{collection}/{itemId}/{uid}: true
+  comments/{collection}/{itemId}/{commentId}: { uid, text, createdAt, email }
+*/
+
+async function toggleLike(collection, id){
+  const u = auth.currentUser; if(!u){ alert('Please login to like'); return; }
+  const likeRef = ref(db, `likes/${collection}/${id}/${u.uid}`);
+  const snap = await get(likeRef);
+  if(snap.exists()){
+    await remove(likeRef);
+  } else {
+    await set(likeRef, true);
   }
+}
 
-  /* ----------------- Manage Admins (owner) ----------------- */
-  document.getElementById('promoteBtn').addEventListener('click', async ()=>{
-    const email = document.getElementById('adminEmailInput').value.trim();
-    if(!email){ alert('Enter email'); return; }
-    const role = await getRoleForCurrentUser(); if(role !== 'owner'){ alert('Only owner can add admins'); return; }
-    const usersSnap = await get(ref(db, 'users'));
-    let foundUid = null;
-    usersSnap.forEach(c => { if(c.val().email === email) foundUid = c.key; });
-    if(!foundUid){ alert('User not found (they must sign up first)'); return; }
-    await update(ref(db, 'users/' + foundUid), { role: 'admin' });
-    alert('Promoted to admin');
-    await renderAdmins();
+/* watches likes count and updates element with given id */
+function watchLikes(collection, id, elId){
+  const counterEl = document.getElementById(elId);
+  const likesRef = ref(db, `likes/${collection}/${id}`);
+  onValue(likesRef, (snap) => {
+    if(counterEl) counterEl.textContent = snap.exists() ? Object.keys(snap.val()).length : '0';
+  }, { onlyOnce: false });
+}
+
+/* Comments: toggle comment box — keep open when toggled */
+async function toggleComments(collectionPath, itemId, type){
+  const wrapperId = (type === 'video') ? `vcomments-${itemId}` : `pcomments-${itemId}`;
+  const box = document.getElementById(wrapperId);
+  if(!box) return;
+  if(box.style.display === 'block') { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  // render comment UI
+  box.innerHTML = `
+    <div class="comment-form">
+      <textarea class="new-comment" placeholder="Write a comment..." style="width:100%;min-height:64px"></textarea>
+      <div class="row" style="margin-top:8px">
+        <button class="btn postComment">Post comment</button>
+        <div class="small-muted" style="align-self:center;margin-left:8px">Comments are visible to everyone</div>
+      </div>
+    </div>
+    <div class="comments-list" style="margin-top:8px"></div>
+  `;
+  const commentsList = box.querySelector('.comments-list');
+  const postBtn = box.querySelector('.postComment');
+  postBtn.addEventListener('click', async ()=>{
+    const txt = box.querySelector('.new-comment').value.trim();
+    if(!txt){ alert('Type a comment'); return; }
+    const u = auth.currentUser; if(!u){ alert('Login to comment'); return; }
+    const cobj = { uid: u.uid, text: txt, email: u.email, createdAt: Date.now() };
+    await push(ref(db, `comments/${collectionPath}/${itemId}`), cobj);
+    box.querySelector('.new-comment').value = '';
+    await renderComments(collectionPath, itemId, commentsList);
   });
+  await renderComments(collectionPath, itemId, commentsList);
+}
 
-  document.getElementById('demoteBtn').addEventListener('click', async ()=>{
-    const email = document.getElementById('adminEmailInput').value.trim();
-    if(!email){ alert('Enter email'); return; }
-    const role = await getRoleForCurrentUser(); if(role !== 'owner'){ alert('Only owner can demote admins'); return; }
-    const usersSnap = await get(ref(db, 'users'));
-    let foundUid = null;
-    usersSnap.forEach(c => { if(c.val().email === email) foundUid = c.key; });
-    if(!foundUid){ alert('User not found'); return; }
-    await update(ref(db, 'users/' + foundUid), { role: 'user' });
-    alert('Demoted to user');
-    await renderAdmins();
+/* render comments list */
+async function renderComments(collectionPath, itemId, container){
+  container.innerHTML = '';
+  const snap = await get(ref(db, `comments/${collectionPath}/${itemId}`));
+  if(!snap.exists()){ container.innerHTML = '<div class="small-muted">No comments yet</div>'; return; }
+  snap.forEach(c => {
+    const cm = c.val(); const k = c.key;
+    const div = document.createElement('div'); div.className = 'comment';
+    div.innerHTML = `<div style="display:flex;justify-content:space-between"><div><strong>${esc(cm.email)}</strong> <span class="small-muted">${new Date(cm.createdAt).toLocaleString()}</span></div></div><div style="margin-top:6px">${esc(cm.text)}</div>`;
+    // allow admins to delete comments?
+    // kept simple: show delete button to comment owner or admins
+    const u = auth.currentUser;
+    if(u && (u.uid === cm.uid)) {
+      const del = document.createElement('button'); del.className='small-btn'; del.textContent='Delete';
+      del.onclick = async ()=> { if(confirm('Delete your comment?')){ await remove(ref(db, `comments/${collectionPath}/${itemId}/${k}`)); renderComments(collectionPath,itemId,container); } };
+      div.appendChild(del);
+    }
+    container.appendChild(div);
   });
+}
 
-  async function renderAdmins(){
-    const cont = document.getElementById('adminsList'); cont.innerHTML = '';
-    const role = await getRoleForCurrentUser(); if(role !== 'owner'){ cont.innerHTML = '<div class="muted">Only owner can view admin list</div>'; return; }
-    const usersSnap = await get(ref(db, 'users'));
-    if(!usersSnap.exists()){ cont.innerHTML = '<div class="muted">No users found</div>'; return; }
-    usersSnap.forEach(c => {
-      const u = c.val(); const uid = c.key;
-      const row = document.createElement('div'); row.className='admin-row';
+/* ----------------- Complaints (private) ----------------- */
+/* Users submit complaint -> stored at complaints/{complaintId} with uid & email & seen:false
+   Only admins/owner can view list and mark resolved or delete
+*/
+document.getElementById('sendComplaint').addEventListener('click', async ()=>{
+  const txt = document.getElementById('complaintText').value.trim();
+  document.getElementById('complaintMsg').textContent = '';
+  if(!txt){ document.getElementById('complaintMsg').textContent = 'Enter a message'; return; }
+  const u = auth.currentUser; if(!u){ alert('Login to submit complaint'); return; }
+  await push(ref(db, 'complaints'), { uid: u.uid, email: u.email, text: txt, createdAt: Date.now(), seen: false });
+  document.getElementById('complaintText').value = '';
+  document.getElementById('complaintMsg').textContent = 'Complaint sent (private).';
+});
+
+/* render complaints for admins */
+async function renderComplaints(){
+  const list = document.getElementById('complaintsList'); if(!list) return;
+  list.innerHTML = '';
+  const snap = await get(ref(db, 'complaints'));
+  if(!snap.exists()){ list.innerHTML = '<div class="muted">No complaints yet</div>'; return; }
+  snap.forEach(c => {
+    const cm = c.val(); const k = c.key;
+    const row = document.createElement('div'); row.className='complaint fade-in';
+    row.innerHTML = `<div style="display:flex;justify-content:space-between"><div><strong>${esc(cm.email)}</strong> <div class="small-muted">${new Date(cm.createdAt).toLocaleString()}</div></div><div><span class="tag">${cm.seen ? 'Seen' : 'New'}</span></div></div><div style="margin-top:8px">${esc(cm.text)}</div>`;
+    const controls = document.createElement('div'); controls.className='row';
+    const mark = document.createElement('button'); mark.className='small-btn'; mark.textContent = cm.seen ? 'Mark unread' : 'Mark seen';
+    mark.onclick = async ()=> { await update(ref(db, 'complaints/' + k), { seen: !cm.seen }); renderComplaints(); };
+    const del = document.createElement('button'); del.className='small-btn'; del.style.background='#fee'; del.textContent='Delete';
+    del.onclick = async ()=> { if(confirm('Delete complaint?')){ await remove(ref(db,'complaints/'+k)); renderComplaints(); } };
+    controls.appendChild(mark); controls.appendChild(del);
+    row.appendChild(controls);
+    list.appendChild(row);
+  });
+}
+
+/* ----------------- Manage Admins (owner) ----------------- */
+document.getElementById('promoteBtn').addEventListener('click', async ()=>{
+  const email = document.getElementById('adminEmailInput').value.trim();
+  if(!email){ alert('Enter email'); return; }
+  const role = await getRoleForCurrentUser(); if(role !== 'owner'){ alert('Only owner can add admins'); return; }
+  const usersSnap = await get(ref(db, 'users'));
+  let foundUid = null;
+  usersSnap.forEach(c => { if(c.val().email === email) foundUid = c.key; });
+  if(!foundUid){ alert('User not found (they must sign up first)'); return; }
+  await update(ref(db, 'users/' + foundUid), { role: 'admin' });
+  alert('Promoted to admin');
+  await renderAdmins();
+});
+
+document.getElementById('demoteBtn').addEventListener('click', async ()=>{
+  const email = document.getElementById('adminEmailInput').value.trim();
+  if(!email){ alert('Enter email'); return; }
+  const role = await getRoleForCurrentUser(); if(role !== 'owner'){ alert('Only owner can demote admins'); return; }
+  const usersSnap = await get(ref(db, 'users'));
+  let foundUid = null;
+  usersSnap.forEach(c => { if(c.val().email === email) foundUid = c.key; });
+  if(!foundUid){ alert('User not found'); return; }
+  await update(ref(db, 'users/' + foundUid), { role: 'user' });
+  alert('Demoted to user');
+  await renderAdmins();
+});
+
+async function renderAdmins(){
+  const cont = document.getElementById('adminsList'); cont.innerHTML = '';
+  const role = await getRoleForCurrentUser(); if(role !== 'owner'){ cont.innerHTML = '<div class="muted">Only owner can view admin list</div>'; return; }
+  const usersSnap = await get(ref(db, 'users'));
+  usersSnap.forEach(c => {
+    const u = c.val(); const uid = c.key;
+    if(u.role === 'admin' || u.role === 'owner'){
+      const row = document.createElement('div'); row.className='admin-row fade-in';
       row.style.display='flex'; row.style.justifyContent='space-between'; row.style.alignItems='center';
       row.innerHTML = `<div>${esc(u.email)} <span class="small-muted">(${u.role})</span></div>`;
       const actions = document.createElement('div');
@@ -728,22 +768,27 @@
       }
       row.appendChild(actions);
       cont.appendChild(row);
-    });
-  }
+    }
+  });
+}
 
-  /* ----------------- Render everything ----------------- */
-  async function renderAll(){
-    await renderVideos();
-    await renderPosts();
-    await renderPositives();
-    await renderAdmins();
-    await renderComplaints();
-  }
+/* ----------------- Render everything after auth changes ----------------- */
+async function renderAll(){
+  await renderVideos();
+  await renderPosts();
+  await renderPositives();
+  await renderAdmins();
+  await renderComplaints();
+}
 
-  /* initial show/hide */
-  document.getElementById('app').style.display = 'none';
+/* initial load helpers */
+document.addEventListener('visibilitychange', ()=> { /* placeholder if needed */ });
 
-  </script>
+/* initial show/hide */
+document.getElementById('app').style.display = 'none';
+
+/* End of module */
+</script>
 </body>
 </html>
 
