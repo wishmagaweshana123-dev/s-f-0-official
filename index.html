@@ -144,7 +144,7 @@
     <!-- Sidebar -->
     <nav class="sidebar" id="sidebar" aria-label="Main navigation">
       <div class="brand">
-        <div class="logo">SF</div>
+        <!-- logo removed -->
         <div>
           <h3 style="margin:0">SF0</h3>
           <div class="small-muted">Role Based Site</div>
@@ -327,7 +327,9 @@ document.getElementById('signupBtn').addEventListener('click', async ()=>{
     // save user in DB with role user (owner if matches)
     const role = (email === OWNER_EMAIL) ? 'owner' : 'user';
     await set(ref(db, 'users/' + uc.user.uid), { email, role });
-    alert('Account created. Please verify email (check Spam).');
+    // force sign-out so the new user cannot stay logged in before verifying email
+    await signOut(auth);
+    alert('Account created. Please verify your email (check Spam). You must verify before login.');
     showLogin('login');
   }catch(e){
     document.getElementById('signupError').textContent = e.message;
@@ -463,8 +465,13 @@ function escAttr(s){ if(!s) return ''; return String(s).replace(/"/g,'&quot;'); 
 /* VIDEOS */
 document.getElementById('uploadVideo').addEventListener('click', async ()=>{
   const title = document.getElementById('videoTitle').value.trim();
-  const url = document.getElementById('videoEmbed').value.trim();
+  let url = document.getElementById('videoEmbed').value.trim();
   if(!title || !url){ alert('Title and embed URL required'); return; }
+  // normalize YouTube links: watch?v= and youtu.be short links -> embed URL
+  try{
+    if(url.includes('watch?v=')) url = url.replace('watch?v=', 'embed/');
+    if(url.includes('youtu.be/')) url = url.replace('youtu.be/', 'www.youtube.com/embed/');
+  }catch(e){ /* ignore */ }
   const role = await getRoleForCurrentUser();
   if(role === 'admin' || role === 'owner'){
     await push(ref(db, 'videos'), { title, url, uploader: auth.currentUser.uid, createdAt: Date.now() });
